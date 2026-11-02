@@ -110,6 +110,20 @@
   <main id="screen-title" class="relative z-10 flex-1 w-full h-full flex items-center justify-center p-4 overflow-y-auto">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
       
+      <!-- Language Switcher (Default: Japanese) -->
+      <div class="flex justify-end mb-3">
+        <div class="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
+          <button type="button" id="btn-lang-ja" onclick="setLanguage('ja')"
+            class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 shadow">
+            日本語
+          </button>
+          <button type="button" id="btn-lang-en" onclick="setLanguage('en')"
+            class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
+            English
+          </button>
+        </div>
+      </div>
+
       <!-- Title Only -->
       <div class="text-center mb-8">
         <h1 class="text-5xl sm:text-6xl font-black tracking-tighter text-cyan-400 text-glow-a">
@@ -122,7 +136,7 @@
         
         <!-- CPU Level Selection -->
         <div>
-          <label class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
+          <label id="lbl-cpu-level" class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
             CPUレベル
           </label>
           <div class="grid grid-cols-3 gap-2.5">
@@ -147,7 +161,7 @@
       <div class="mt-8 space-y-3">
         <button type="button" onclick="startGame()"
           class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-lg tracking-wide shadow-lg shadow-cyan-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
-          <span>GAME START</span>
+          <span id="btn-game-start-label">GAME START</span>
         </button>
 
         <button type="button" onclick="startOrResumeTutorial()"
@@ -157,10 +171,10 @@
       </div>
 
       <div class="mt-5 flex items-center justify-center gap-5">
-        <button type="button" onclick="openRuleModal()" class="text-xs text-slate-400 hover:text-slate-200 underline underline-offset-4">
+        <button type="button" id="btn-title-rules" onclick="openRuleModal()" class="text-xs text-slate-400 hover:text-slate-200 underline underline-offset-4">
           ルールを確認する
         </button>
-        <button type="button" onclick="startDemoGame()" class="text-xs text-cyan-400/80 hover:text-cyan-300 underline underline-offset-4">
+        <button type="button" id="btn-title-demo" onclick="startDemoGame()" class="text-xs text-cyan-400/80 hover:text-cyan-300 underline underline-offset-4">
           デモプレイ観戦 (CPU対局)
         </button>
       </div>
@@ -177,7 +191,7 @@
     <header class="w-full max-w-[1100px] mx-auto px-2.5 pt-2 pb-1 shrink-0">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl px-3 py-1.5 flex items-center justify-between gap-1">
         <div class="flex items-center gap-1.5">
-          <button type="button" onclick="confirmReturnToTitle()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="タイトルへ戻る">
+          <button type="button" id="btn-header-back" onclick="confirmReturnToTitle()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="タイトルへ戻る">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -188,7 +202,7 @@
         <!-- Turn & Active Player Badge -->
         <div class="flex items-center gap-1.5">
           <div id="turn-counter-box" class="bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 text-[11px] font-mono-num">
-            <span class="text-slate-400 text-[10px] mr-0.5">手番</span>
+            <span id="lbl-turn-prefix" class="text-slate-400 text-[10px] mr-0.5">手番</span>
             <span id="ui-turn-current" class="font-bold text-white">1</span>
             <span class="text-slate-600">/</span>
             <span id="ui-turn-max" class="text-slate-400">64</span>
@@ -209,7 +223,7 @@
           <button type="button" id="btn-surrender" onclick="openSurrenderModal()" class="px-2.5 py-1 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-[11px] font-bold text-rose-300 border border-rose-500/40 transition-colors">
             サレンダー
           </button>
-          <button type="button" onclick="openRuleModal()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 border border-slate-700">
+          <button type="button" id="btn-header-rules" onclick="openRuleModal()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 border border-slate-700">
             ルール
           </button>
         </div>
@@ -249,33 +263,33 @@
               <div></div>
               <button type="button" onclick="onTapPopupDirection('N')" id="popup-dir-N"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span class="text-xs font-extrabold">北</span>
+                <span id="popup-dir-txt-N" class="text-xs font-extrabold">北</span>
                 <span id="popup-sub-N" class="text-[9px] opacity-75">▲</span>
               </button>
               <div></div>
 
               <button type="button" onclick="onTapPopupDirection('W')" id="popup-dir-W"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span class="text-xs font-extrabold">西</span>
+                <span id="popup-dir-txt-W" class="text-xs font-extrabold">西</span>
                 <span id="popup-sub-W" class="text-[9px] opacity-75">◀</span>
               </button>
 
               <!-- Center Count Status -->
               <div class="rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center p-1 text-center">
-                <span class="text-[9px] text-slate-400">選択方向</span>
+                <span id="lbl-popup-center" class="text-[9px] text-slate-400">選択方向</span>
                 <span id="popup-dir-progress" class="font-mono-num text-xs font-black text-white">0 / 2</span>
               </div>
 
               <button type="button" onclick="onTapPopupDirection('E')" id="popup-dir-E"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span class="text-xs font-extrabold">東</span>
+                <span id="popup-dir-txt-E" class="text-xs font-extrabold">東</span>
                 <span id="popup-sub-E" class="text-[9px] opacity-75">▶</span>
               </button>
 
               <div></div>
               <button type="button" onclick="onTapPopupDirection('S')" id="popup-dir-S"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span class="text-xs font-extrabold">南</span>
+                <span id="popup-dir-txt-S" class="text-xs font-extrabold">南</span>
                 <span id="popup-sub-S" class="text-[9px] opacity-75">▼</span>
               </button>
               <div></div>
@@ -312,15 +326,15 @@
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold" id="opp-type-tag">CPU</span>
               </div>
               <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
-                <span>光源:<b id="opp-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
-                <span>スキップ:<b id="opp-skip-status" class="text-slate-300 ml-0.5">残1</b></span>
+                <span><span id="lbl-opp-sources">光源</span>:<b id="opp-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
+                <span><span id="lbl-opp-skip">スキップ</span>:<b id="opp-skip-status" class="text-slate-300 ml-0.5">残1</b></span>
               </div>
             </div>
           </div>
 
           <!-- Opponent Unused Lives -->
           <div class="flex flex-col items-end gap-0.5">
-            <span class="text-[9px] text-slate-400">未使用ライフ</span>
+            <span id="lbl-opp-unused" class="text-[9px] text-slate-400">未使用ライフ</span>
             <div id="opp-lives-list" class="flex items-center gap-1">
               <!-- Populated by JS -->
             </div>
@@ -328,7 +342,7 @@
 
           <!-- Opponent Score -->
           <div class="text-right shrink-0 pl-2 border-l border-slate-800">
-            <div class="text-[9px] text-slate-400 leading-none">所有マス</div>
+            <div id="lbl-opp-cells" class="text-[9px] text-slate-400 leading-none">所有マス</div>
             <div id="opp-score" class="font-mono-num text-base sm:text-lg font-black text-rose-400 leading-tight mt-0.5">3</div>
           </div>
         </section>
@@ -354,14 +368,14 @@
 
         <!-- Territory Ratio Bar -->
         <div id="territory-bar-box" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center gap-2 shrink-0">
-          <span class="text-[11px] font-mono-num font-bold text-cyan-400 shrink-0">先手 <b id="ratio-A">3</b></span>
+          <span class="text-[11px] font-mono-num font-bold text-cyan-400 shrink-0"><span id="lbl-ratio-a">先手</span> <b id="ratio-A">3</b></span>
           <div class="flex-1 h-2.5 bg-slate-950 rounded-full overflow-hidden flex border border-slate-800">
             <div id="bar-A" class="h-full bg-cyan-400 transition-all duration-300" style="width: 8.3%"></div>
             <div id="bar-N" class="h-full bg-slate-700 transition-all duration-300" style="width: 83.4%"></div>
             <div id="bar-B" class="h-full bg-rose-500 transition-all duration-300" style="width: 8.3%"></div>
           </div>
-          <span class="text-[10px] font-mono-num text-slate-400 shrink-0">中立 <b id="ratio-N">30</b></span>
-          <span class="text-[11px] font-mono-num font-bold text-rose-400 shrink-0">後手 <b id="ratio-B">3</b></span>
+          <span class="text-[10px] font-mono-num text-slate-400 shrink-0"><span id="lbl-ratio-n">中立</span> <b id="ratio-N">30</b></span>
+          <span class="text-[11px] font-mono-num font-bold text-rose-400 shrink-0"><span id="lbl-ratio-b">後手</span> <b id="ratio-B">3</b></span>
         </div>
 
         <!-- Bottom Player Control Dock (Unused Life Selection + Skip / Pass) -->
@@ -370,12 +384,12 @@
             <div class="flex items-center gap-1.5">
               <span id="self-dot" class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
               <span id="self-role-label" class="font-extrabold text-xs text-white">先手 (あなた)</span>
-              <span class="text-[10px] text-slate-400 ml-1">光源:<b id="self-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
+              <span class="text-[10px] text-slate-400 ml-1"><span id="lbl-self-sources">光源</span>:<b id="self-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
             </div>
 
             <div class="flex items-center gap-2">
               <div class="text-xs text-slate-400">
-                所有マス: <span id="self-score" class="font-mono-num font-black text-sm sm:text-base text-cyan-400">3</span>
+                <span id="lbl-self-cells">所有マス</span>: <span id="self-score" class="font-mono-num font-black text-sm sm:text-base text-cyan-400">3</span>
                 <span id="self-score-diff" class="font-mono-num text-xs font-bold text-emerald-400 hidden">+0</span>
               </div>
             </div>
@@ -385,7 +399,7 @@
           <div class="flex items-stretch gap-2">
             <div class="flex-1">
               <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                <span class="font-bold text-slate-300">未使用ライフ</span>
+                <span id="lbl-self-unused" class="font-bold text-slate-300">未使用ライフ</span>
                 <span id="self-cycle-info" class="font-mono-num">サイクル 2/4手目</span>
               </div>
               <div id="self-lives-grid" class="grid grid-cols-4 gap-1.5">
@@ -397,13 +411,13 @@
             <div class="flex flex-col justify-end shrink-0">
               <button type="button" id="btn-skip-action" onclick="openSkipModal('B')"
                 class="h-[44px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 flex flex-col items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                <span>スキップ</span>
+                <span id="lbl-btn-skip">スキップ</span>
                 <span id="self-skip-sub" class="text-[9px] text-slate-400 font-normal">残り1回</span>
               </button>
               <button type="button" id="btn-forced-pass" onclick="openSkipModal('C')"
                 class="hidden h-[44px] px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 flex flex-col items-center justify-center transition-all animate-pulse">
-                <span>強制パス</span>
-                <span class="text-[9px] font-bold">配置不可</span>
+                <span id="lbl-btn-pass">強制パス</span>
+                <span id="lbl-btn-pass-sub" class="text-[9px] font-bold">配置不可</span>
               </button>
             </div>
           </div>
@@ -426,7 +440,7 @@
       </p>
 
       <div class="mt-4">
-        <div class="text-xs font-bold text-slate-400 mb-2">消費する未使用ライフを選択：</div>
+        <div id="lbl-skip-select" class="text-xs font-bold text-slate-400 mb-2">消費する未使用ライフを選択：</div>
         <div id="modal-skip-lives" class="grid grid-cols-2 gap-2.5">
           <!-- Populated dynamically -->
         </div>
@@ -466,17 +480,17 @@
         <div class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/40">
           <div id="result-label-A" class="text-xs font-bold text-cyan-300">先手</div>
           <div id="result-score-A" class="font-mono-num text-3xl font-black text-white mt-1">0</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">所有マス</div>
+          <div id="lbl-res-cells-a" class="text-[10px] text-slate-400 mt-0.5">所有マス</div>
           <div class="text-[11px] font-mono-num text-cyan-200 mt-1 border-t border-cyan-500/20 pt-1">
-            残存光源: <b id="result-sources-A">0</b>個
+            <span id="lbl-res-src-a">残存光源:</span> <b id="result-sources-A">0</b>
           </div>
         </div>
         <div class="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-500/40">
           <div id="result-label-B" class="text-xs font-bold text-rose-300">後手</div>
           <div id="result-score-B" class="font-mono-num text-3xl font-black text-white mt-1">0</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">所有マス</div>
+          <div id="lbl-res-cells-b" class="text-[10px] text-slate-400 mt-0.5">所有マス</div>
           <div class="text-[11px] font-mono-num text-rose-200 mt-1 border-t border-rose-500/20 pt-1">
-            残存光源: <b id="result-sources-B">0</b>個
+            <span id="lbl-res-src-b">残存光源:</span> <b id="result-sources-B">0</b>
           </div>
         </div>
       </div>
@@ -489,13 +503,13 @@
           class="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm shadow-lg shadow-cyan-500/20">
           もう一回プレイ
         </button>
-        <button type="button" onclick="backToTitle()"
+        <button type="button" id="btn-result-title" onclick="backToTitle()"
           class="flex-1 py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700">
           タイトルに戻る
         </button>
       </div>
 
-      <button type="button" onclick="toggleInspectBoard()" class="mt-4 text-xs text-slate-400 hover:text-slate-200 underline underline-offset-2">
+      <button type="button" id="btn-result-inspect" onclick="toggleInspectBoard()" class="mt-4 text-xs text-slate-400 hover:text-slate-200 underline underline-offset-2">
         最終盤面を確認する
       </button>
     </div>
@@ -503,8 +517,8 @@
 
   <!-- Floating Bar when inspecting final board -->
   <div id="floating-result-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden bg-slate-900/95 border border-slate-700 rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3">
-    <span class="text-xs font-bold text-white">最終盤面確認中</span>
-    <button type="button" onclick="showResultModal()" class="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 text-xs font-black">
+    <span id="lbl-inspecting-board" class="text-xs font-bold text-white">最終盤面確認中</span>
+    <button type="button" id="btn-back-to-result" onclick="showResultModal()" class="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 text-xs font-black">
       結果画面に戻る
     </button>
   </div>
@@ -518,7 +532,7 @@
         <span id="tut-modal-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono-num">
           STEP 1 / 6
         </span>
-        <button type="button" onclick="closeTutorialInfoModal()" class="text-slate-400 hover:text-white text-xs font-bold">
+        <button type="button" id="btn-tut-info-close" onclick="closeTutorialInfoModal()" class="text-slate-400 hover:text-white text-xs font-bold">
           ✕ 閉じる
         </button>
       </div>
@@ -537,15 +551,15 @@
   <div id="modal-tutorial-steps" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-black text-white">チュートリアル ステップ選択</h3>
-        <button type="button" onclick="closeTutorialStepMenu()" class="text-slate-400 hover:text-white text-xs font-bold">✕ 閉じる</button>
+        <h3 id="lbl-tut-steps-title" class="text-base font-black text-white">チュートリアル ステップ選択</h3>
+        <button type="button" id="btn-tut-steps-close" onclick="closeTutorialStepMenu()" class="text-slate-400 hover:text-white text-xs font-bold">✕ 閉じる</button>
       </div>
       <div id="tutorial-step-list" class="space-y-2">
         <!-- Populated by JS -->
       </div>
       <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between">
-        <button type="button" onclick="backToTitle()" class="text-xs text-rose-400 font-bold">タイトルへ戻る</button>
-        <button type="button" onclick="closeTutorialStepMenu()" class="text-xs text-slate-400">キャンセル</button>
+        <button type="button" id="btn-tut-steps-title" onclick="backToTitle()" class="text-xs text-rose-400 font-bold">タイトルへ戻る</button>
+        <button type="button" id="btn-tut-steps-cancel" onclick="closeTutorialStepMenu()" class="text-xs text-slate-400">キャンセル</button>
       </div>
     </div>
   </div>
@@ -556,12 +570,148 @@
   <div id="modal-rules" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="w-full max-w-lg max-h-[85vh] bg-slate-900 border border-slate-700 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="text-base font-black text-white">KOSEN ルールガイド</h3>
+        <h3 id="lbl-rules-modal-title" class="text-base font-black text-white">KOSEN ルールガイド</h3>
         <button type="button" onclick="closeRuleModal()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
           ✕
         </button>
       </div>
-      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed">
+      <div id="rules-modal-body" class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed">
+      </div>
+      <div class="px-5 py-3 border-t border-slate-800 text-right">
+        <button type="button" id="btn-rules-close" onclick="closeRuleModal()" class="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       7. CONFIRM RETURN TO TITLE & SURRENDER MODALS
+       ========================================== -->
+  <div id="modal-confirm-title" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center">
+      <h3 id="lbl-confirm-title-heading" class="text-base font-black text-white">タイトル画面に戻りますか？</h3>
+      <p id="confirm-title-desc" class="text-xs text-slate-400 mt-1.5">現在の対局を終了します。</p>
+      <div class="mt-5 flex gap-2.5">
+        <button type="button" id="btn-confirm-title-cancel" onclick="closeConfirmTitleModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          キャンセル
+        </button>
+        <button type="button" id="btn-confirm-title-ok" onclick="backToTitle()" class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-xs font-black text-white">
+          戻る
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-surrender" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center">
+      <h3 id="lbl-surrender-heading" class="text-base font-black text-white">サレンダー（降参）しますか？</h3>
+      <p id="lbl-surrender-desc" class="text-xs text-slate-300 mt-1.5 leading-relaxed">サレンダーすると即座にあなたの敗北となります。</p>
+      <div class="mt-5 flex gap-2.5">
+        <button type="button" id="btn-surrender-cancel" onclick="closeSurrenderModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          キャンセル
+        </button>
+        <button type="button" id="btn-surrender-ok" onclick="executeSurrender()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black text-white shadow-lg shadow-rose-600/30">
+          サレンダーする
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT ENGINE (6x6 RULES + PYTHON AI PORT + I18N JA/EN)
+       ========================================== -->
+  <script>
+    /* --------------------------------------------------------------------------
+     * CONSTANTS, LANGUAGE (JA / EN) & DIRECTION HELPERS
+     * -------------------------------------------------------------------------- */
+    const BOARD_SIZE = 6;
+    const MAX_TURNS = 64;
+
+    let currentLang = 'ja'; // Starts in Japanese by default
+
+    const DIRS = {
+      N: { dr: -1, dc: 0, label: '北', labelEn: 'N' },
+      S: { dr: 1,  dc: 0, label: '南', labelEn: 'S' },
+      E: { dr: 0,  dc: 1, label: '東', labelEn: 'E' },
+      W: { dr: 0,  dc: -1, label: '西', labelEn: 'W' }
+    };
+    const DIR_KEYS = ['N', 'S', 'E', 'W'];
+
+    const DIR_COMBOS_BY_LIFE = { 1: [], 2: [], 3: [], 4: [] };
+    (function buildCombos() {
+      for (let mask = 1; mask < 16; mask++) {
+        const combo = [];
+        for (let i = 0; i < 4; i++) {
+          if (mask & (1 << i)) combo.push(DIR_KEYS[i]);
+        }
+        const life = 5 - combo.length;
+        DIR_COMBOS_BY_LIFE[life].push(combo);
+      }
+    })();
+
+    function isEn() {
+      return currentLang === 'en';
+    }
+
+    function dirLabel(dKey) {
+      return isEn() ? DIRS[dKey].labelEn : DIRS[dKey].label;
+    }
+
+    function roleName(key) {
+      if (isEn()) {
+        return key === 'A' ? '1st Player' : '2nd Player';
+      }
+      return key === 'A' ? '先手' : '後手';
+    }
+
+    function roleShortName(key) {
+      if (isEn()) {
+        return key === 'A' ? '1st' : '2nd';
+      }
+      return key === 'A' ? '先' : '後';
+    }
+
+    function getRulesModalHTML() {
+      if (isEn()) {
+        return `
+          <div>
+            <h4 class="font-bold text-cyan-400 mb-1">■ Objective & Winning Conditions</h4>
+            <p>On a 6×6 board (coordinates 0,0 to 5,5), the 1st Player and 2nd Player take turns placing light sources. At the end of the game, the player who controls more "Territory Cells" (cells reached by more of their rays than their opponent's) wins.</p>
+            <p class="mt-1 text-amber-300">* If both players have the same number of territory cells, <strong>the player with more remaining light sources on the board</strong> wins. If both territory cells and remaining light sources are tied, the 2nd Player wins.</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-cyan-400 mb-1">■ Initial Placement & First Cycle</h4>
+            <p>Before the game begins, both players consume "Life 4 (1 Direction)" from their first cycle to place the following initial light sources:</p>
+            <ul class="list-disc list-inside mt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              <li>1st Player: Coordinate (2, 2) facing East (Life 4)</li>
+              <li>2nd Player: Coordinate (3, 3) facing West (Life 4)</li>
+            </ul>
+            <p class="mt-1">Therefore, both players start their first cycle with <strong>Unused Lives "1, 2, 3" remaining</strong>.</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-cyan-400 mb-1">■ Unused Life & Ray Directions</h4>
+            <p>In 1 cycle (4 of your turns), you use Life resources "1, 2, 3, 4" once each. The chosen Life determines the number of emission directions and the durability (Life value) of the placed light source. You may also choose directions facing the outer wall on edge cells.</p>
+            <div class="grid grid-cols-4 gap-1.5 my-2 text-center font-mono-num text-[11px]">
+              <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">Life 4<br><b class="text-white">1 Dir</b></div>
+              <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">Life 3<br><b class="text-white">2 Dirs</b></div>
+              <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">Life 2<br><b class="text-white">3 Dirs</b></div>
+              <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">Life 1<br><b class="text-white">4 Dirs</b></div>
+            </div>
+          </div>
+          <div>
+            <h4 class="font-bold text-cyan-400 mb-1">■ Ray Propagation, Ownership & Destruction</h4>
+            <p>Rays travel in a straight line from the adjacent cell to the edge of the board and are never blocked by other light sources. Each cell compares the ray counts: Blue if 1st Player has more, Red if 2nd Player has more, or Neutral if tied.</p>
+            <p class="mt-1">If a cell containing a light source satisfies <strong>"Opponent Rays − Owner Rays ≧ Source Life"</strong>, that light source is destroyed and removed, triggering a recalculation (and potential chain destruction).</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-cyan-400 mb-1">■ Voluntary Skip & Forced Pass</h4>
+            <p><strong>Skip:</strong> Once per game, when legal placements exist, you may consume 1 unused Life resource to skip your turn.<br>
+            <strong>Forced Pass:</strong> When no empty cells exist on the board, you must consume 1 unused Life resource to pass (this does not consume your voluntary skip right). The game ends when two consecutive forced passes occur or when the maximum turn limit (64 turns) is reached.</p>
+          </div>
+        `;
+      }
+      return `
         <div>
           <h4 class="font-bold text-cyan-400 mb-1">■ ゲームの目的と勝敗判定</h4>
           <p>6×6の盤面（座標 0,0 〜 5,5）で先手と後手が交互に光源を配置し、ゲーム終了時に自分の光線が相手より多く届いている「所有マス」の数を競います。</p>
@@ -596,80 +746,128 @@
           <p><strong>スキップ：</strong>ゲーム中1回だけ、配置可能な状態で未使用ライフを1つ消費して手番をパスできます。<br>
           <strong>強制パス：</strong>配置できる空きマスがない場合、未使用ライフを1つ消費して強制パスとなります（スキップ権は消費しません）。両者が連続して強制パスを行うか、最大手番数（64手）に達するとゲーム終了です。</p>
         </div>
-      </div>
-      <div class="px-5 py-3 border-t border-slate-800 text-right">
-        <button type="button" onclick="closeRuleModal()" class="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs">
-          閉じる
-        </button>
-      </div>
-    </div>
-  </div>
+      `;
+    }
 
-  <!-- ==========================================
-       7. CONFIRM RETURN TO TITLE & SURRENDER MODALS
-       ========================================== -->
-  <div id="modal-confirm-title" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center">
-      <h3 class="text-base font-black text-white">タイトル画面に戻りますか？</h3>
-      <p id="confirm-title-desc" class="text-xs text-slate-400 mt-1.5">現在の対局を終了します。</p>
-      <div class="mt-5 flex gap-2.5">
-        <button type="button" onclick="closeConfirmTitleModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
-          キャンセル
-        </button>
-        <button type="button" onclick="backToTitle()" class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-xs font-black text-white">
-          戻る
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modal-surrender" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center">
-      <h3 class="text-base font-black text-white">サレンダー（降参）しますか？</h3>
-      <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">サレンダーすると即座にあなたの敗北となります。</p>
-      <div class="mt-5 flex gap-2.5">
-        <button type="button" onclick="closeSurrenderModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
-          キャンセル
-        </button>
-        <button type="button" onclick="executeSurrender()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black text-white shadow-lg shadow-rose-600/30">
-          サレンダーする
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
-       JAVASCRIPT ENGINE (6x6 RULES + PYTHON AI PORT + RESPONSIVE LAYOUT)
-       ========================================== -->
-  <script>
-    /* --------------------------------------------------------------------------
-     * CONSTANTS & DIRECTION HELPERS
-     * -------------------------------------------------------------------------- */
-    const BOARD_SIZE = 6;
-    const MAX_TURNS = 64;
-
-    const DIRS = {
-      N: { dr: -1, dc: 0, label: '北' },
-      S: { dr: 1,  dc: 0, label: '南' },
-      E: { dr: 0,  dc: 1, label: '東' },
-      W: { dr: 0,  dc: -1, label: '西' }
-    };
-    const DIR_KEYS = ['N', 'S', 'E', 'W'];
-
-    const DIR_COMBOS_BY_LIFE = { 1: [], 2: [], 3: [], 4: [] };
-    (function buildCombos() {
-      for (let mask = 1; mask < 16; mask++) {
-        const combo = [];
-        for (let i = 0; i < 4; i++) {
-          if (mask & (1 << i)) combo.push(DIR_KEYS[i]);
-        }
-        const life = 5 - combo.length;
-        DIR_COMBOS_BY_LIFE[life].push(combo);
+    function updateTutorialButtonLabel() {
+      const tutBtnLabel = document.getElementById('btn-tutorial-label');
+      if (!tutBtnLabel) return;
+      if (savedTutorialStep > 1 && savedTutorialStep <= 6) {
+        tutBtnLabel.textContent = isEn()
+          ? `Tutorial (Resume STEP ${savedTutorialStep})`
+          : `チュートリアル（STEP ${savedTutorialStep} から再開）`;
+      } else {
+        tutBtnLabel.textContent = isEn() ? 'Tutorial' : 'チュートリアル';
       }
-    })();
+    }
 
-    function roleName(key) {
-      return key === 'A' ? '先手' : '後手';
+    function setLanguage(lang) {
+      currentLang = lang === 'en' ? 'en' : 'ja';
+      document.documentElement.lang = currentLang;
+
+      const btnJa = document.getElementById('btn-lang-ja');
+      const btnEn = document.getElementById('btn-lang-en');
+      if (btnJa && btnEn) {
+        if (currentLang === 'ja') {
+          btnJa.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 shadow';
+          btnEn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+        } else {
+          btnEn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 shadow';
+          btnJa.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+        }
+      }
+
+      // Title screen static texts
+      document.getElementById('lbl-cpu-level').textContent = isEn() ? 'CPU LEVEL' : 'CPUレベル';
+      document.getElementById('opt-cpu-1').textContent = isEn() ? 'Easy' : '初級';
+      document.getElementById('opt-cpu-2').textContent = isEn() ? 'Normal' : '中級';
+      document.getElementById('opt-cpu-3').textContent = isEn() ? 'Hard' : '上級';
+      document.getElementById('btn-game-start-label').textContent = 'GAME START';
+      updateTutorialButtonLabel();
+      document.getElementById('btn-title-rules').textContent = isEn() ? 'Rules' : 'ルールを確認する';
+      document.getElementById('btn-title-demo').textContent = isEn() ? 'Watch Demo (CPU vs CPU)' : 'デモプレイ観戦 (CPU対局)';
+
+      // Game screen header & static labels
+      document.getElementById('btn-header-back').title = isEn() ? 'Back to Title' : 'タイトルへ戻る';
+      document.getElementById('lbl-turn-prefix').textContent = isEn() ? 'Turn' : '手番';
+      document.getElementById('btn-layout-toggle').title = isEn() ? 'Switch PC / Mobile View' : 'PC表示とスマホ表示を切り替え';
+      document.getElementById('btn-surrender').textContent = isEn() ? 'Surrender' : 'サレンダー';
+      document.getElementById('btn-header-rules').textContent = isEn() ? 'Rules' : 'ルール';
+
+      const toggleBtn = document.getElementById('btn-layout-toggle');
+      if (toggleBtn) {
+        if (currentLayoutMode === 'pc') {
+          toggleBtn.textContent = isEn() ? '📱 Mobile View' : '📱 スマホ表示';
+        } else {
+          toggleBtn.textContent = isEn() ? '🖥️ PC View' : '🖥️ PC表示';
+        }
+      }
+
+      // Direction Popup labels
+      document.getElementById('popup-dir-txt-N').textContent = dirLabel('N');
+      document.getElementById('popup-dir-txt-S').textContent = dirLabel('S');
+      document.getElementById('popup-dir-txt-E').textContent = dirLabel('E');
+      document.getElementById('popup-dir-txt-W').textContent = dirLabel('W');
+      document.getElementById('lbl-popup-center').textContent = isEn() ? 'Directions' : '選択方向';
+      document.getElementById('btn-popup-confirm').textContent = isEn() ? 'Place Here' : 'ここに配置する';
+
+      // Status Bars static labels
+      document.getElementById('lbl-opp-sources').textContent = isEn() ? 'Sources' : '光源';
+      document.getElementById('lbl-opp-skip').textContent = isEn() ? 'Skip' : 'スキップ';
+      document.getElementById('lbl-opp-unused').textContent = isEn() ? 'Unused Life' : '未使用ライフ';
+      document.getElementById('lbl-opp-cells').textContent = isEn() ? 'Cells' : '所有マス';
+
+      document.getElementById('btn-guide-detail').textContent = isEn() ? 'Details' : '解説';
+
+      document.getElementById('lbl-ratio-a').textContent = isEn() ? '1st' : '先手';
+      document.getElementById('lbl-ratio-n').textContent = isEn() ? 'Neutral' : '中立';
+      document.getElementById('lbl-ratio-b').textContent = isEn() ? '2nd' : '後手';
+
+      document.getElementById('lbl-self-sources').textContent = isEn() ? 'Sources' : '光源';
+      document.getElementById('lbl-self-cells').textContent = isEn() ? 'Cells' : '所有マス';
+      document.getElementById('lbl-self-unused').textContent = isEn() ? 'Unused Life' : '未使用ライフ';
+      document.getElementById('lbl-btn-skip').textContent = isEn() ? 'Skip' : 'スキップ';
+      document.getElementById('lbl-btn-pass').textContent = isEn() ? 'Forced Pass' : '強制パス';
+      document.getElementById('lbl-btn-pass-sub').textContent = isEn() ? 'No Moves' : '配置不可';
+
+      // Modals static labels
+      document.getElementById('lbl-skip-select').textContent = isEn() ? 'Select an unused life to consume:' : '消費する未使用ライフを選択：';
+      document.getElementById('btn-cancel-skip').textContent = isEn() ? 'Cancel' : 'キャンセル';
+
+      document.getElementById('lbl-res-cells-a').textContent = isEn() ? 'Territory Cells' : '所有マス';
+      document.getElementById('lbl-res-cells-b').textContent = isEn() ? 'Territory Cells' : '所有マス';
+      document.getElementById('lbl-res-src-a').textContent = isEn() ? 'Sources:' : '残存光源:';
+      document.getElementById('lbl-res-src-b').textContent = isEn() ? 'Sources:' : '残存光源:';
+      document.getElementById('btn-result-retry').textContent = isEn() ? 'Play Again' : 'もう一回プレイ';
+      document.getElementById('btn-result-title').textContent = isEn() ? 'Back to Title' : 'タイトルに戻る';
+      document.getElementById('btn-result-inspect').textContent = isEn() ? 'Inspect Final Board' : '最終盤面を確認する';
+      document.getElementById('lbl-inspecting-board').textContent = isEn() ? 'Inspecting Final Board' : '最終盤面確認中';
+      document.getElementById('btn-back-to-result').textContent = isEn() ? 'Back to Results' : '結果画面に戻る';
+
+      document.getElementById('btn-tut-info-close').textContent = isEn() ? '✕ Close' : '✕ 閉じる';
+      document.getElementById('lbl-tut-steps-title').textContent = isEn() ? 'Select Tutorial Step' : 'チュートリアル ステップ選択';
+      document.getElementById('btn-tut-steps-close').textContent = isEn() ? '✕ Close' : '✕ 閉じる';
+      document.getElementById('btn-tut-steps-title').textContent = isEn() ? 'Back to Title' : 'タイトルへ戻る';
+      document.getElementById('btn-tut-steps-cancel').textContent = isEn() ? 'Cancel' : 'キャンセル';
+
+      document.getElementById('lbl-rules-modal-title').textContent = isEn() ? 'KOSEN Rule Guide' : 'KOSEN ルールガイド';
+      document.getElementById('rules-modal-body').innerHTML = getRulesModalHTML();
+      document.getElementById('btn-rules-close').textContent = isEn() ? 'Close' : '閉じる';
+
+      document.getElementById('lbl-confirm-title-heading').textContent = isEn() ? 'Return to Title Screen?' : 'タイトル画面に戻りますか？';
+      document.getElementById('btn-confirm-title-cancel').textContent = isEn() ? 'Cancel' : 'キャンセル';
+      document.getElementById('btn-confirm-title-ok').textContent = isEn() ? 'Return' : '戻る';
+
+      document.getElementById('lbl-surrender-heading').textContent = isEn() ? 'Surrender this match?' : 'サレンダー（降参）しますか？';
+      document.getElementById('lbl-surrender-desc').textContent = isEn()
+        ? 'Surrendering will immediately result in a loss.'
+        : 'サレンダーすると即座にあなたの敗北となります。';
+      document.getElementById('btn-surrender-cancel').textContent = isEn() ? 'Cancel' : 'キャンセル';
+      document.getElementById('btn-surrender-ok').textContent = isEn() ? 'Surrender' : 'サレンダーする';
+
+      if (gameState) {
+        renderAll();
+      }
     }
 
     /* --------------------------------------------------------------------------
@@ -701,7 +899,7 @@
         sidePanelCol.appendChild(territoryBox);
         sidePanelCol.appendChild(selfBar);
 
-        if (toggleBtn) toggleBtn.textContent = '📱 スマホ表示';
+        if (toggleBtn) toggleBtn.textContent = isEn() ? '📱 Mobile View' : '📱 スマホ表示';
       } else {
         workspace.className = 'flex-1 min-h-0 w-full max-w-[480px] mx-auto px-2.5 pb-2 flex flex-col justify-between gap-1.5 overflow-hidden';
         mobileTopSlot.classList.remove('hidden');
@@ -713,7 +911,7 @@
         sidePanelCol.appendChild(territoryBox);
         sidePanelCol.appendChild(selfBar);
 
-        if (toggleBtn) toggleBtn.textContent = '🖥️ PC表示';
+        if (toggleBtn) toggleBtn.textContent = isEn() ? '🖥️ PC View' : '🖥️ PC表示';
       }
 
       updateBoardSquareSize();
@@ -952,14 +1150,20 @@
 
     function validatePlacement(state, playerKey, r, c, life, dirs) {
       if (!life || !state.players[playerKey].unusedLives.includes(life)) {
-        return { valid: false, reason: '未使用ライフを選択してください' };
+        return { valid: false, reason: isEn() ? 'Select an unused Life resource' : '未使用ライフを選択してください' };
       }
       if (r === null || c === null || state.board[r][c] !== null) {
-        return { valid: false, reason: '空きマスを選択してください' };
+        return { valid: false, reason: isEn() ? 'Select an empty cell' : '空きマスを選択してください' };
       }
       const neededDirs = 5 - life;
       if (dirs.length !== neededDirs) {
-        return { valid: false, reason: `あと ${neededDirs - dirs.length} 方向選択してください` };
+        const rem = neededDirs - dirs.length;
+        return {
+          valid: false,
+          reason: isEn()
+            ? `Select ${rem} more direction${rem > 1 ? 's' : ''}`
+            : `あと ${rem} 方向選択してください`
+        };
       }
 
       // Tutorial step specific restriction check
@@ -967,20 +1171,38 @@
         const req = state.tutorialRequirement;
         if (req.type === 'place') {
           if (req.life && req.life !== life) {
-            return { valid: false, reason: `チュートリアル指示：未使用ライフ「${req.life}」を選択してください` };
+            return {
+              valid: false,
+              reason: isEn()
+                ? `Tutorial: Select Unused Life "${req.life}"`
+                : `チュートリアル指示：未使用ライフ「${req.life}」を選択してください`
+            };
           }
           if (req.r !== undefined && (req.r !== r || req.c !== c)) {
-            return { valid: false, reason: `チュートリアル指示：ハイライトされたマス (${req.r}, ${req.c}) を選択してください` };
+            return {
+              valid: false,
+              reason: isEn()
+                ? `Tutorial: Select highlighted cell (${req.r}, ${req.c})`
+                : `チュートリアル指示：ハイライトされたマス (${req.r}, ${req.c}) を選択してください`
+            };
           }
           if (req.dirs) {
             const match = req.dirs.length === dirs.length && req.dirs.every(d => dirs.includes(d));
             if (!match) {
-              const labels = req.dirs.map(d => DIRS[d].label).join('・');
-              return { valid: false, reason: `チュートリアル指示：「${labels}」方向を選択してください` };
+              const labels = req.dirs.map(d => dirLabel(d)).join(isEn() ? ' & ' : '・');
+              return {
+                valid: false,
+                reason: isEn()
+                  ? `Tutorial: Select direction(s) "${labels}"`
+                  : `チュートリアル指示：「${labels}」方向を選択してください`
+              };
             }
           }
         } else {
-          return { valid: false, reason: 'チュートリアルの指示に従ってください' };
+          return {
+            valid: false,
+            reason: isEn() ? 'Follow the tutorial instructions' : 'チュートリアルの指示に従ってください'
+          };
         }
       }
 
@@ -1050,7 +1272,9 @@
       document.getElementById('floating-result-bar').classList.add('hidden');
       document.getElementById('screen-game').classList.remove('hidden');
 
-      document.getElementById('header-mode-title').textContent = isDemo ? 'KOSEN (デモ観戦)' : 'KOSEN';
+      document.getElementById('header-mode-title').textContent = isDemo
+        ? (isEn() ? 'KOSEN (Demo)' : 'KOSEN (デモ観戦)')
+        : 'KOSEN';
       document.getElementById('turn-counter-box').classList.remove('hidden');
       document.getElementById('btn-tutorial-steps').classList.add('hidden');
       // Hide guide banner completely in normal games!
@@ -1065,9 +1289,9 @@
       requestAnimationFrame(updateBoardSquareSize);
 
       if (isDemo) {
-        showToast('デモプレイ開始：先手CPU vs 後手CPU');
+        showToast(isEn() ? 'Demo Match Started: 1st CPU vs 2nd CPU' : 'デモプレイ開始：先手CPU vs 後手CPU');
       } else {
-        showToast(`あなたは「${roleName(humanRole)}」です`);
+        showToast(isEn() ? `You are the ${roleName(humanRole)}` : `あなたは「${roleName(humanRole)}」です`);
       }
       checkAndTriggerTurn();
     }
@@ -1125,19 +1349,16 @@
       document.getElementById('screen-game').classList.add('hidden');
       document.getElementById('screen-title').classList.remove('hidden');
 
-      const tutBtnLabel = document.getElementById('btn-tutorial-label');
-      if (savedTutorialStep > 1 && savedTutorialStep <= 6) {
-        tutBtnLabel.textContent = `チュートリアル（STEP ${savedTutorialStep} から再開）`;
-      } else {
-        tutBtnLabel.textContent = 'チュートリアル';
-      }
+      updateTutorialButtonLabel();
     }
 
     function confirmReturnToTitle() {
       document.getElementById('confirm-title-desc').textContent =
         (gameState && gameState.isTutorial)
-          ? `現在のステップ（STEP ${gameState.tutorialStep}）を保存してタイトルへ戻ります。`
-          : '現在の対局を終了します。';
+          ? (isEn()
+              ? `Your progress (STEP ${gameState.tutorialStep}) will be saved.`
+              : `現在のステップ（STEP ${gameState.tutorialStep}）を保存してタイトルへ戻ります。`)
+          : (isEn() ? 'The current match will end.' : '現在の対局を終了します。');
       document.getElementById('modal-confirm-title').classList.remove('hidden');
     }
     function closeConfirmTitleModal() {
@@ -1147,7 +1368,7 @@
     function openSurrenderModal() {
       if (!gameState || gameState.isGameOver || gameState.isDemo) return;
       if (gameState.isTutorial && gameState.tutorialStep < 6) {
-        showToast('チュートリアルの練習ステップ中はサレンダーできません');
+        showToast(isEn() ? 'Cannot surrender during practice tutorial steps' : 'チュートリアルの練習ステップ中はサレンダーできません');
         return;
       }
       document.getElementById('modal-surrender').classList.remove('hidden');
@@ -1166,7 +1387,10 @@
       selectedDirsQueue = [];
       const humanKey = gameState.humanRole;
       const oppKey = humanKey === 'A' ? 'B' : 'A';
-      endGame(`${roleName(humanKey)}（あなた）のサレンダーにより対局終了`, oppKey);
+      const msg = isEn()
+        ? `Match ended by ${roleName(humanKey)} (YOU) surrender`
+        : `${roleName(humanKey)}（あなた）のサレンダーにより対局終了`;
+      endGame(msg, oppKey);
     }
 
     /* --------------------------------------------------------------------------
@@ -1178,17 +1402,17 @@
       if (!gameState.players[activeKey].isHuman) return;
 
       if (!gameState.players[activeKey].unusedLives.includes(lifeVal)) {
-        showToast(`ライフ ${lifeVal} はこのサイクルで使用済みです`);
+        showToast(isEn() ? `Life ${lifeVal} has already been used in this cycle` : `ライフ ${lifeVal} はこのサイクルで使用済みです`);
         return;
       }
       if (gameState.isTutorial && gameState.tutorialRequirement) {
         const req = gameState.tutorialRequirement;
         if (req.type !== 'place') {
-          showToast('現在はスキップまたは強制パスの操作を行ってください');
+          showToast(isEn() ? 'Please use the Skip or Forced Pass button now' : '現在はスキップまたは強制パスの操作を行ってください');
           return;
         }
         if (req.life && req.life !== lifeVal) {
-          showToast(`チュートリアル指示：未使用ライフ「${req.life}」を選んでください`);
+          showToast(isEn() ? `Tutorial: Select Unused Life "${req.life}"` : `チュートリアル指示：未使用ライフ「${req.life}」を選んでください`);
           return;
         }
       }
@@ -1208,22 +1432,22 @@
       if (gameState.isTutorial && gameState.tutorialRequirement) {
         const req = gameState.tutorialRequirement;
         if (req.type !== 'place') {
-          showToast('右下のボタンから操作してください');
+          showToast(isEn() ? 'Please use the action button on the bottom right' : '右下のボタンから操作してください');
           return;
         }
         if (req.r !== undefined && (req.r !== r || req.c !== c)) {
-          showToast(`ハイライトされたマス (${req.r}, ${req.c}) をタップしてください`);
+          showToast(isEn() ? `Tap the highlighted cell (${req.r}, ${req.c})` : `ハイライトされたマス (${req.r}, ${req.c}) をタップしてください`);
           return;
         }
       }
 
       if (gameState.board[r][c] !== null) {
-        showToast('そのマスには既に光源があります');
+        showToast(isEn() ? 'A light source is already placed on that cell' : 'そのマスには既に光源があります');
         return;
       }
 
       if (!selectedLife) {
-        showToast('先に「未使用ライフ」を選択してください');
+        showToast(isEn() ? 'Please select an "Unused Life" first' : '先に「未使用ライフ」を選択してください');
         return;
       }
 
@@ -1364,11 +1588,11 @@
       gameState.turnCount++;
 
       if (gameState.consecutiveForcedPasses >= 2) {
-        endGame('両者が連続して強制パスを行ったため対局終了');
+        endGame(isEn() ? 'Game ended due to two consecutive forced passes' : '両者が連続して強制パスを行ったため対局終了');
         return;
       }
       if (gameState.turnCount >= gameState.maxTurns) {
-        endGame(`規定手番数（${gameState.maxTurns}手）到達により対局終了`);
+        endGame(isEn() ? `Game ended upon reaching maximum turns (${gameState.maxTurns})` : `規定手番数（${gameState.maxTurns}手）到達により対局終了`);
         return;
       }
 
@@ -1439,12 +1663,13 @@
       document.getElementById('modal-result').classList.remove('hidden');
 
       document.getElementById('result-reason-badge').textContent = gameState.endReason;
-      document.getElementById('result-label-A').textContent = `先手 (${gameState.players.A.isHuman ? 'あなた' : 'CPU'})`;
-      document.getElementById('result-label-B').textContent = `後手 (${gameState.players.B.isHuman ? 'あなた' : 'CPU'})`;
+      const youStr = isEn() ? 'YOU' : 'あなた';
+      document.getElementById('result-label-A').textContent = `${roleName('A')} (${gameState.players.A.isHuman ? youStr : 'CPU'})`;
+      document.getElementById('result-label-B').textContent = `${roleName('B')} (${gameState.players.B.isHuman ? youStr : 'CPU'})`;
       document.getElementById('result-score-A').textContent = ev.scoreA;
       document.getElementById('result-score-B').textContent = ev.scoreB;
-      document.getElementById('result-sources-A').textContent = ev.sourcesA;
-      document.getElementById('result-sources-B').textContent = ev.sourcesB;
+      document.getElementById('result-sources-A').textContent = isEn() ? `${ev.sourcesA}` : `${ev.sourcesA}個`;
+      document.getElementById('result-sources-B').textContent = isEn() ? `${ev.sourcesB}` : `${ev.sourcesB}個`;
 
       const glowEl = document.getElementById('result-glow');
       const iconEl = document.getElementById('result-icon');
@@ -1453,10 +1678,14 @@
       const tieNote = document.getElementById('result-tie-note');
 
       if (gameState.tieBreakReason === 'sources') {
-        tieNote.textContent = `※所有マス数が同点のため、残存光源数（${ev.sourcesA} 対 ${ev.sourcesB}）により${roleName(winner)}の勝利！`;
+        tieNote.textContent = isEn()
+          ? `* Territory cells tied! ${roleName(winner)} wins by remaining light sources (${ev.sourcesA} vs ${ev.sourcesB})!`
+          : `※所有マス数が同点のため、残存光源数（${ev.sourcesA} 対 ${ev.sourcesB}）により${roleName(winner)}の勝利！`;
         tieNote.classList.remove('hidden');
       } else if (gameState.tieBreakReason === 'secondPlayerRule') {
-        tieNote.textContent = '※所有マス数・残存光源数ともに同数のため、後手の勝利！';
+        tieNote.textContent = isEn()
+          ? '* Both territory cells and remaining sources tied! 2nd Player wins by tie-breaker rule!'
+          : '※所有マス数・残存光源数ともに同数のため、後手の勝利！';
         tieNote.classList.remove('hidden');
       } else {
         tieNote.classList.add('hidden');
@@ -1474,7 +1703,9 @@
         glowEl.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 bg-rose-500/20 border-2 border-rose-400';
       }
 
-      subEl.textContent = `${roleName(winner)}（${humanWon ? 'あなた' : 'CPU'}）の勝利！`;
+      subEl.textContent = isEn()
+        ? `${roleName(winner)} (${humanWon ? 'YOU' : 'CPU'}) Wins!`
+        : `${roleName(winner)}（${humanWon ? 'あなた' : 'CPU'}）の勝利！`;
     }
 
     function toggleInspectBoard() {
@@ -1838,11 +2069,11 @@
       if (gameState.isTutorial && gameState.tutorialRequirement) {
         const req = gameState.tutorialRequirement;
         if (actionType === 'B' && req.type !== 'skip') {
-          showToast('現在は光源の配置を行ってください');
+          showToast(isEn() ? 'Please place a light source now' : '現在は光源の配置を行ってください');
           return;
         }
         if (actionType === 'C' && req.type !== 'pass') {
-          showToast('チュートリアルの指示に従ってください');
+          showToast(isEn() ? 'Please follow the tutorial instructions' : 'チュートリアルの指示に従ってください');
           return;
         }
       }
@@ -1854,11 +2085,15 @@
       const container = document.getElementById('modal-skip-lives');
 
       if (actionType === 'B') {
-        titleEl.textContent = '自発的スキップ';
-        descEl.textContent = 'スキップ権（1回のみ）を使用し、光源を配置せずに手番を終了します。消費する未使用ライフを1つ選択してください。';
+        titleEl.textContent = isEn() ? 'Voluntary Skip' : '自発的スキップ';
+        descEl.textContent = isEn()
+          ? 'Use your one-time Skip right to end your turn without placing a light source. Select 1 unused Life resource to consume.'
+          : 'スキップ権（1回のみ）を使用し、光源を配置せずに手番を終了します。消費する未使用ライフを1つ選択してください。';
       } else {
-        titleEl.textContent = '強制パス';
-        descEl.textContent = '配置可能なマスが存在しないため、強制パスを実行します（スキップ権は消費されません）。消費する未使用ライフを1つ選択してください。';
+        titleEl.textContent = isEn() ? 'Forced Pass' : '強制パス';
+        descEl.textContent = isEn()
+          ? 'No empty cells are available to place a light source (your Skip right is not consumed). Select 1 unused Life resource to consume.'
+          : '配置可能なマスが存在しないため、強制パスを実行します（スキップ権は消費されません）。消費する未使用ライフを1つ選択してください。';
       }
 
       const unused = gameState.players[activeKey].unusedLives;
@@ -1867,8 +2102,8 @@
         return `
           <button type="button" onclick="confirmSkipResource(${life})"
             class="p-3.5 rounded-2xl bg-slate-800 hover:bg-cyan-500/20 border border-slate-700 hover:border-cyan-400 text-left transition-all">
-            <div class="font-mono-num font-black text-base text-white">ライフ ${life}</div>
-            <div class="text-[11px] text-slate-400 mt-0.5">${dirCount}方向照射用を消費</div>
+            <div class="font-mono-num font-black text-base text-white">${isEn() ? `Life ${life}` : `ライフ ${life}`}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${isEn() ? `Consumes ${dirCount}-Dir resource` : `${dirCount}方向照射用を消費`}</div>
           </button>
         `;
       }).join('');
@@ -1887,6 +2122,7 @@
     }
 
     function openRuleModal() {
+      document.getElementById('rules-modal-body').innerHTML = getRulesModalHTML();
       document.getElementById('modal-rules').classList.remove('hidden');
     }
     function closeRuleModal() {
@@ -1894,16 +2130,28 @@
     }
 
     /* --------------------------------------------------------------------------
-     * 6-STEP INTERACTIVE TUTORIAL ENGINE (All 6x6, 0-indexed coordinates)
+     * 6-STEP INTERACTIVE TUTORIAL ENGINE (All 6x6, 0-indexed coordinates, JA/EN)
      * -------------------------------------------------------------------------- */
-    const TUTORIAL_STEPS_META = [
-      { step: 1, title: 'STEP 1：基本操作と光線の照射', summary: '未使用ライフ選択→マス選択→方向決定の操作と光線の直進を学びます' },
-      { step: 2, title: 'STEP 2：マスの所有権と勝敗判定', summary: '光線数の比較による所有権と、同点時の残存光源数判定を学びます' },
-      { step: 3, title: 'STEP 3：光源の破壊', summary: '光線数の差がライフ値以上になった時の光源破壊を体験します' },
-      { step: 4, title: 'STEP 4：初期配置とライフ資源の管理', summary: '初期配置(2,2)/(3,3)によるライフ1〜3開始とサイクルのリセットを学びます' },
-      { step: 5, title: 'STEP 5：スキップと強制パス', summary: '自発的スキップと強制パスの違いを体験します' },
-      { step: 6, title: 'STEP 6：実戦形式の演習（6×6盤面）', summary: '公式初期配置からスタートし、6×6盤面で最後まで対局します' }
-    ];
+    function getTutorialStepsMeta() {
+      if (isEn()) {
+        return [
+          { step: 1, title: 'STEP 1: Controls & Ray Emission', summary: 'Learn how to select Unused Life -> Cell -> Direction and how rays travel' },
+          { step: 2, title: 'STEP 2: Territory Ownership & Tie-Breaker', summary: 'Learn how ray counts determine cell ownership and tie-breaker rules' },
+          { step: 3, title: 'STEP 3: Destroying Light Sources', summary: 'Experience destroying an opponent source when ray difference >= Life' },
+          { step: 4, title: 'STEP 4: Initial Setup & Life Cycle', summary: 'Learn the initial (2,2)/(3,3) setup, Life 1-3 start, and cycle reset' },
+          { step: 5, title: 'STEP 5: Voluntary Skip & Forced Pass', summary: 'Experience the difference between Voluntary Skip and Forced Pass' },
+          { step: 6, title: 'STEP 6: Practice Match (6×6 Board)', summary: 'Play a full match from the official initial setup on the 6×6 board' }
+        ];
+      }
+      return [
+        { step: 1, title: 'STEP 1：基本操作と光線の照射', summary: '未使用ライフ選択→マス選択→方向決定の操作と光線の直進を学びます' },
+        { step: 2, title: 'STEP 2：マスの所有権と勝敗判定', summary: '光線数の比較による所有権と、同点時の残存光源数判定を学びます' },
+        { step: 3, title: 'STEP 3：光源の破壊', summary: '光線数の差がライフ値以上になった時の光源破壊を体験します' },
+        { step: 4, title: 'STEP 4：初期配置とライフ資源の管理', summary: '初期配置(2,2)/(3,3)によるライフ1〜3開始とサイクルのリセットを学びます' },
+        { step: 5, title: 'STEP 5：スキップと強制パス', summary: '自発的スキップと強制パスの違いを体験します' },
+        { step: 6, title: 'STEP 6：実戦形式の演習（6×6盤面）', summary: '公式初期配置からスタートし、6×6盤面で最後まで対局します' }
+      ];
+    }
 
     function startOrResumeTutorial() {
       initTutorialStep(savedTutorialStep || 1);
@@ -1911,7 +2159,8 @@
 
     function openTutorialStepMenu() {
       const listEl = document.getElementById('tutorial-step-list');
-      listEl.innerHTML = TUTORIAL_STEPS_META.map(m => {
+      const stepsMeta = getTutorialStepsMeta();
+      listEl.innerHTML = stepsMeta.map(m => {
         const active = gameState && gameState.isTutorial && gameState.tutorialStep === m.step;
         return `
           <button type="button" onclick="selectTutorialStepFromMenu(${m.step})"
@@ -1940,14 +2189,15 @@
       document.getElementById('modal-tutorial-info').classList.add('hidden');
     }
 
-    function showTutorialDialog(badgeText, title, bodyHTML, buttonText = '確認して操作へ進む', onClickHandler = null) {
+    function showTutorialDialog(badgeText, title, bodyHTML, buttonText = null, onClickHandler = null) {
+      const btnLabel = buttonText || (isEn() ? 'Got it, Start Action' : '確認して操作へ進む');
       document.getElementById('tut-modal-badge').textContent = badgeText;
       document.getElementById('tut-modal-title').textContent = title;
       document.getElementById('tut-modal-body').innerHTML = bodyHTML;
       const actionsEl = document.getElementById('tut-modal-actions');
       actionsEl.innerHTML = `
         <button type="button" id="tut-modal-primary-btn" class="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm">
-          ${buttonText}
+          ${btnLabel}
         </button>
       `;
       document.getElementById('tut-modal-primary-btn').onclick = () => {
@@ -1994,7 +2244,7 @@
       document.getElementById('floating-result-bar').classList.add('hidden');
       document.getElementById('screen-game').classList.remove('hidden');
 
-      document.getElementById('header-mode-title').textContent = 'チュートリアル';
+      document.getElementById('header-mode-title').textContent = isEn() ? 'Tutorial' : 'チュートリアル';
       document.getElementById('btn-tutorial-steps').classList.remove('hidden');
       document.getElementById('guide-banner').classList.remove('hidden');
       document.getElementById('guide-banner').classList.add('flex');
@@ -2008,13 +2258,24 @@
         gameState.tutorialRequirement = { type: 'place', life: 4, r: 2, c: 1, dirs: ['E'] };
         selectedLife = 4;
         setGuideBanner(
-          'STEP 1-1：基本操作で東方向に照射しよう',
-          '① 下の未使用ライフ「4」を選択 → ② マス (2, 1) をタップ → ③「東」を選んで配置'
+          isEn() ? 'STEP 1-1: Emit a Ray to the East' : 'STEP 1-1：基本操作で東方向に照射しよう',
+          isEn()
+            ? '1. Select Unused Life "4" below -> 2. Tap cell (2, 1) -> 3. Select "E" and Place'
+            : '① 下の未使用ライフ「4」を選択 → ② マス (2, 1) をタップ → ③「東」を選んで配置'
         );
         showTutorialDialog(
           'STEP 1 / 6',
-          '基本操作と光線の照射',
-          `
+          isEn() ? 'Basic Controls & Ray Emission' : '基本操作と光線の照射',
+          isEn() ? `
+            <p>The board is 6×6 (coordinates 0,0 to 5,5). Placing a light source takes 3 simple steps:</p>
+            <ol class="list-decimal list-inside space-y-1 text-slate-200 bg-slate-950 p-3 rounded-2xl border border-slate-800 font-bold">
+              <li>Select an "Unused Life" at the bottom</li>
+              <li>Tap an empty cell on the board</li>
+              <li>Choose emission direction(s) (N, S, E, W) in the popup and confirm</li>
+            </ol>
+            <p>Rays travel in a straight line to the edge of the board and pass through other light sources without being blocked.</p>
+            <p class="text-cyan-300 font-bold">First, let's place a light source at coordinate (2, 1) facing East ("E").</p>
+          ` : `
             <p>盤面は6×6（座標 0,0 〜 5,5）です。光源を配置する基本操作は以下の3ステップです。</p>
             <ol class="list-decimal list-inside space-y-1 text-slate-200 bg-slate-950 p-3 rounded-2xl border border-slate-800 font-bold">
               <li>画面下の「未使用ライフ」を選択する</li>
@@ -2032,13 +2293,23 @@
         gameState.tutorialRequirement = { type: 'place', life: 3, r: 1, c: 2, dirs: ['S', 'E'] };
         selectedLife = 3;
         setGuideBanner(
-          'STEP 2：光線を重ねて所有権を奪おう',
-          '未使用ライフ「3（2方向）」で、マス (1, 2) に「南・東」方向で配置してください。'
+          isEn() ? 'STEP 2: Overlap Rays to Claim Territory' : 'STEP 2：光線を重ねて所有権を奪おう',
+          isEn()
+            ? 'With Unused Life "3 (2 Dirs)", place at cell (1, 2) facing "S & E".'
+            : '未使用ライフ「3（2方向）」で、マス (1, 2) に「南・東」方向で配置してください。'
         );
         showTutorialDialog(
           'STEP 2 / 6',
-          'マスの所有権と勝敗判定',
-          `
+          isEn() ? 'Territory Ownership & Tie-Breakers' : 'マスの所有権と勝敗判定',
+          isEn() ? `
+            <p>Each cell's ownership is determined by comparing the number of <strong>1st Player rays</strong> and <strong>2nd Player rays</strong> reaching it.</p>
+            <div class="grid grid-cols-3 gap-1.5 text-center font-mono-num text-[11px] bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+              <div class="p-1.5 rounded bg-cyan-950/60 border border-cyan-500/40 text-cyan-300">1st 2 : 2nd 0<br><b>1st Owns (Blue)</b></div>
+              <div class="p-1.5 rounded bg-slate-900 border border-slate-700 text-slate-300">1st 1 : 2nd 1<br><b>Neutral</b></div>
+              <div class="p-1.5 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300">1st 1 : 2nd 3<br><b>2nd Owns (Red)</b></div>
+            </div>
+            <p class="text-amber-300">* If territory cells are tied at the end of the game, <strong>the player with more remaining light sources on the board</strong> wins (if still tied, 2nd Player wins).</p>
+          ` : `
             <p>各マスに到達している<strong>先手の光線数</strong>と<strong>後手の光線数</strong>を比較して所有権が決まります。</p>
             <div class="grid grid-cols-3 gap-1.5 text-center font-mono-num text-[11px] bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
               <div class="p-1.5 rounded bg-cyan-950/60 border border-cyan-500/40 text-cyan-300">先手 2 : 後手 0<br><b>先手所有(濃青)</b></div>
@@ -2062,13 +2333,22 @@
         gameState.tutorialRequirement = { type: 'place', life: 3, r: 0, c: 2, dirs: ['S', 'E'] };
         selectedLife = 3;
         setGuideBanner(
-          'STEP 3：相手の光源を破壊しよう',
-          '座標 (2, 2) にある先手の光源（ライフ3）には後手の光線が2本とどいています。(0, 2) に「南・東」で配置して破壊しましょう！'
+          isEn() ? 'STEP 3: Destroy Opponent Light Source' : 'STEP 3：相手の光源を破壊しよう',
+          isEn()
+            ? '1st Player\'s source at (2, 2) has Life 3 and is hit by 2 of 2nd Player\'s rays. Place at (0, 2) facing "S & E" to destroy it!'
+            : '座標 (2, 2) にある先手の光源（ライフ3）には後手の光線が2本とどいています。(0, 2) に「南・東」で配置して破壊しましょう！'
         );
         showTutorialDialog(
           'STEP 3 / 6',
-          '光源の破壊',
-          `
+          isEn() ? 'Destroying Light Sources' : '光源の破壊',
+          isEn() ? `
+            <p>When a cell with a light source satisfies <strong>"Opponent Rays − Owner Rays ≧ Source Life"</strong>, that light source is destroyed and removed from the board.</p>
+            <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-cyan-300 font-bold">1st Player's source at (2, 2): Life 3</div>
+              <div>Rays reaching (2, 2): 1st = 0 / 2nd = 2 (Difference is 2)</div>
+              <div class="text-amber-300">Hit (2, 2) with 1 more 2nd Player ray so the difference reaches "3" and destroys it!</div>
+            </div>
+          ` : `
             <p>光源が置かれているマスで、<strong>「相手の光線数 − 自身の光線数 ≧ 光源のライフ値」</strong>になると、その光源は破壊されて消滅します。</p>
             <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
               <div class="text-cyan-300 font-bold">現在 (2, 2) にある先手の光源：ライフ 3</div>
@@ -2078,7 +2358,6 @@
           `
         );
       } else if (stepNum === 4) {
-        // Pre-place standard setup (2,2) East and (3,3) West, with unusedLives [1, 2, 3]
         gameState.board = createInitialStandardBoard();
         gameState.eval = calculateRaysAndOwnership(gameState.board);
         gameState.players.A.unusedLives = [1, 2, 3];
@@ -2089,13 +2368,22 @@
         gameState.tutorialRequirement = { type: 'place', life: 3 };
         selectedLife = 3;
         setGuideBanner(
-          'STEP 4-1：初期配置と未使用ライフ「3」の配置',
-          '初期配置でライフ4が使われているため、未使用ライフは [1, 2, 3] から始まります。ライフ「3（2方向）」を空きマスに配置しましょう。'
+          isEn() ? 'STEP 4-1: Initial Setup & Unused Life "3"' : 'STEP 4-1：初期配置と未使用ライフ「3」の配置',
+          isEn()
+            ? 'Because Life 4 was used for the initial setup, you start with Unused Lives [1, 2, 3]. Place Life "3 (2 Dirs)" on any empty cell.'
+            : '初期配置でライフ4が使われているため、未使用ライフは [1, 2, 3] から始まります。ライフ「3（2方向）」を空きマスに配置しましょう。'
         );
         showTutorialDialog(
           'STEP 4 / 6',
-          '初期配置とライフ資源の管理',
-          `
+          isEn() ? 'Initial Setup & Life Resource Cycle' : '初期配置とライフ資源の管理',
+          isEn() ? `
+            <p>In official rules, before the game begins, both players consume <strong>"Life 4 (1 Dir)"</strong> from their first cycle to place initial sources:</p>
+            <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <li>1st Player: Coordinate (2, 2) facing East (Life 4)</li>
+              <li>2nd Player: Coordinate (3, 3) facing West (Life 4)</li>
+            </ul>
+            <p>Therefore, the first cycle begins with <strong>Unused Lives "1, 2, 3" available</strong>. Once all 3 are used, the cycle resets and all "1, 2, 3, 4" become available again.</p>
+          ` : `
             <p>公式ルールでは、ゲーム開始前に両プレイヤーが最初のサイクルの<strong>「ライフ4（1方向）」</strong>を消費して初期配置を行います。</p>
             <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800">
               <li>先手：座標 (2, 2) に 東向き（ライフ4）</li>
@@ -2112,13 +2400,21 @@
         gameState.tutorialRequirement = { type: 'skip' };
         selectedLife = null;
         setGuideBanner(
-          'STEP 5-1：自発的スキップを使ってみよう',
-          '右下の「スキップ」ボタンを押し、未使用ライフを1つ選んで消費してください。'
+          isEn() ? 'STEP 5-1: Try Using Voluntary Skip' : 'STEP 5-1：自発的スキップを使ってみよう',
+          isEn()
+            ? 'Press the "Skip" button at the bottom right and select 1 Unused Life to consume.'
+            : '右下の「スキップ」ボタンを押し、未使用ライフを1つ選んで消費してください。'
         );
         showTutorialDialog(
           'STEP 5 / 6',
-          'スキップと強制パス',
-          `
+          isEn() ? 'Voluntary Skip & Forced Pass' : 'スキップと強制パス',
+          isEn() ? `
+            <p>There are two ways a turn can proceed without placing a light source: <strong>"Skip"</strong> and <strong>"Forced Pass"</strong>.</p>
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2 text-[11px]">
+              <div><b class="text-cyan-300">■ Voluntary Skip (Once per game):</b><br>Chosen voluntarily when empty cells exist. Consumes 1 Unused Life and uses up your Skip right.</div>
+              <div><b class="text-amber-300">■ Forced Pass:</b><br>Triggered automatically when no empty cells exist. Consumes 1 Unused Life without using your Skip right.</div>
+            </div>
+          ` : `
             <p>光源を配置しない手番の進め方には<strong>「スキップ」</strong>と<strong>「強制パス」</strong>の2種類があります。</p>
             <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2 text-[11px]">
               <div><b class="text-cyan-300">■ 自発的スキップ（ゲーム中1回のみ）：</b><br>配置できるマスがある状態で任意に選択。未使用ライフを1つ消費し、スキップ権も消費します。</div>
@@ -2136,13 +2432,22 @@
         gameState.tutorialRequirement = null;
         selectedLife = 3;
         setGuideBanner(
-          'STEP 6：実戦形式の演習（6×6盤面）',
-          '初期配置 (2,2) 東・(3,3) 西、未使用ライフ [1,2,3] からスタート！最後まで対局しましょう。'
+          isEn() ? 'STEP 6: Practice Match (6×6 Board)' : 'STEP 6：実戦形式の演習（6×6盤面）',
+          isEn()
+            ? 'Start from initial setup (2,2) E & (3,3) W with Unused Lives [1,2,3]! Play until the end of the match.'
+            : '初期配置 (2,2) 東・(3,3) 西、未使用ライフ [1,2,3] からスタート！最後まで対局しましょう。'
         );
         showTutorialDialog(
           'STEP 6 / 6',
-          '実戦形式の演習',
-          `
+          isEn() ? 'Practice Match' : '実戦形式の演習',
+          isEn() ? `
+            <p>This is the final step! Play a full match against the CPU starting from the official initial setup (1st at (2,2) E, 2nd at (3,3) W) and Unused Lives [1, 2, 3].</p>
+            <ul class="list-disc list-inside space-y-1 text-slate-300 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <li>Select "Unused Life" -> Tap an empty cell -> Confirm direction(s)</li>
+              <li>Overlap rays to expand territory and destroy opponent sources</li>
+              <li>If territory cells are tied, the player with more remaining sources wins</li>
+            </ul>
+          ` : `
             <p>いよいよ最終ステップです！公式初期配置（先手 (2,2) 東・後手 (3,3) 西）と未使用ライフ [1, 2, 3] の状態からCPUと対局しましょう。</p>
             <ul class="list-disc list-inside space-y-1 text-slate-300 bg-slate-950 p-3 rounded-2xl border border-slate-800">
               <li>左下の「未使用ライフ」を選ぶ → 空きマスをタップ → 方向を決定</li>
@@ -2173,19 +2478,24 @@
           gameState.tutorialRequirement = { type: 'place', life: 3, r: 3, c: 3, dirs: ['N', 'S'] };
           selectedLife = 3;
           setGuideBanner(
-            'STEP 1-2：2方向に光線を照射しよう',
-            '東へ光線が伸びました！次は未使用ライフ「3（2方向）」で、マス (3, 3) に「北・南」の2方向を選択して配置してください。'
+            isEn() ? 'STEP 1-2: Emit Rays in 2 Directions' : 'STEP 1-2：2方向に光線を照射しよう',
+            isEn()
+              ? 'The ray extended East! Next, with Unused Life "3 (2 Dirs)", tap cell (3, 3) and select "N & S".'
+              : '東へ光線が伸びました！次は未使用ライフ「3（2方向）」で、マス (3, 3) に「北・南」の2方向を選択して配置してください。'
           );
           renderAll();
         } else {
           showTutorialDialog(
-            'STEP 1 完了',
-            '基本操作と光線の照射をマスターしました！',
-            `
+            isEn() ? 'STEP 1 Complete' : 'STEP 1 完了',
+            isEn() ? 'Mastered Basic Controls & Ray Emission!' : '基本操作と光線の照射をマスターしました！',
+            isEn() ? `
+              <p>Rays extended North and South from (3, 3), passing right through the ray from (2, 1) without blocking each other.</p>
+              <p class="text-emerald-300 font-bold">Next: "STEP 2: Territory Ownership & Tie-Breaker".</p>
+            ` : `
               <p>(3, 3) から北と南へ光線が伸び、(2, 1) からの光線とも互いに遮られず通過していることが分かります。</p>
               <p class="text-emerald-300 font-bold">次は「STEP 2：マスの所有権と勝敗判定」へ進みます。</p>
             `,
-            'STEP 2 へ進む',
+            isEn() ? 'Proceed to STEP 2' : 'STEP 2 へ進む',
             () => initTutorialStep(2)
           );
         }
@@ -2198,9 +2508,17 @@
           renderAll();
 
           showTutorialDialog(
-            'STEP 2 完了',
-            'マスの所有権の変化を確認！',
-            `
+            isEn() ? 'STEP 2 Complete' : 'STEP 2 完了',
+            isEn() ? 'Confirmed Territory Ownership Changes!' : 'マスの所有権の変化を確認！',
+            isEn() ? `
+              <p>1st and 2nd Player rays intersected, changing the board colors!</p>
+              <ul class="list-disc list-inside space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                <li><span class="text-cyan-300 font-bold">(2, 2) is 1st 2 : 2nd 0</span> → Deep Blue (1st Player Territory!)</li>
+                <li><span class="text-slate-300 font-bold">(2, 4) is 1st 1 : 2nd 1</span> → Equal rays (Neutral!)</li>
+                <li><span class="text-rose-300 font-bold">(3, 3) is 1st 0 : 2nd 2</span> → Deep Red (2nd Player Territory!)</li>
+              </ul>
+              <p class="text-emerald-300 font-bold">Next: "STEP 3: Destroying Light Sources".</p>
+            ` : `
               <p>先手と後手の光線が交差し、盤面の色が変化しました！</p>
               <ul class="list-disc list-inside space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
                 <li><span class="text-cyan-300 font-bold">(2, 2) は 先手2 : 後手0</span> → 濃い青色で先手の所有！</li>
@@ -2209,19 +2527,22 @@
               </ul>
               <p class="text-emerald-300 font-bold">次は「STEP 3：光源の破壊」へ進みます。</p>
             `,
-            'STEP 3 へ進む',
+            isEn() ? 'Proceed to STEP 3' : 'STEP 3 へ進む',
             () => initTutorialStep(3)
           );
         }, 400);
       } else if (step === 3) {
         showTutorialDialog(
-          'STEP 3 完了',
-          '光源の破壊に成功しました！',
-          `
+          isEn() ? 'STEP 3 Complete' : 'STEP 3 完了',
+          isEn() ? 'Successfully Destroyed the Light Source!' : '光源の破壊に成功しました！',
+          isEn() ? `
+            <p>3 of 2nd Player's rays reached (2, 2), satisfying <strong>Opponent Rays (3) − Owner Rays (0) ≧ Life (3)</strong> and destroying 1st Player's light source!</p>
+            <p class="text-emerald-300 font-bold">Next: "STEP 4: Initial Setup & Life Cycle".</p>
+          ` : `
             <p>(2, 2) のマスに後手の光線が3本到達し、<strong>相手の光線(3) − 自身の光線(0) ≧ ライフ(3)</strong> を満たしたため、先手の光源が破壊されて消滅しました！</p>
             <p class="text-emerald-300 font-bold">次は「STEP 4：初期配置とライフ資源の管理」へ進みます。</p>
           `,
-          'STEP 4 へ進む',
+          isEn() ? 'Proceed to STEP 4' : 'STEP 4 へ進む',
           () => initTutorialStep(4)
         );
       } else if (step === 4) {
@@ -2233,19 +2554,24 @@
           gameState.tutorialRequirement = { type: 'place', life: 1 };
           selectedLife = 1;
           setGuideBanner(
-            'STEP 4-2：サイクル最後のライフ「1」を使おう',
-            '次はサイクル最後の未使用ライフ「1（4方向）」を任意の空きマスに配置して、サイクルリセットを確認しましょう！'
+            isEn() ? 'STEP 4-2: Use the Last Life "1" in Cycle' : 'STEP 4-2：サイクル最後のライフ「1」を使おう',
+            isEn()
+              ? 'Now place the final Unused Life "1 (4 Dirs)" on any empty cell to see the cycle reset!'
+              : '次はサイクル最後の未使用ライフ「1（4方向）」を任意の空きマスに配置して、サイクルリセットを確認しましょう！'
           );
           renderAll();
         } else {
           showTutorialDialog(
-            'STEP 4 完了',
-            'サイクルがリセットされました！',
-            `
+            isEn() ? 'STEP 4 Complete' : 'STEP 4 完了',
+            isEn() ? 'Life Cycle Reset Confirmed!' : 'サイクルがリセットされました！',
+            isEn() ? `
+              <p>By using up the remaining Life in the cycle, your <strong>Unused Lives have reset to [1, 2, 3, 4]</strong>!</p>
+              <p class="text-emerald-300 font-bold">Next: "STEP 5: Voluntary Skip & Forced Pass".</p>
+            ` : `
               <p>最初のサイクルの残りライフを使い切ったことで、<strong>未使用ライフが [1, 2, 3, 4] すべて使用可能</strong>にリセットされました！</p>
               <p class="text-emerald-300 font-bold">次は「STEP 5：スキップと強制パス」へ進みます。</p>
             `,
-            'STEP 5 へ進む',
+            isEn() ? 'Proceed to STEP 5' : 'STEP 5 へ進む',
             () => initTutorialStep(5)
           );
         }
@@ -2264,19 +2590,24 @@
           gameState.activePlayer = 'A';
           gameState.tutorialRequirement = { type: 'pass' };
           setGuideBanner(
-            'STEP 5-2：強制パスを体験しよう',
-            '盤面がすべて埋まり配置できない状態になりました。右下の「強制パス」ボタンを押してください。'
+            isEn() ? 'STEP 5-2: Experience a Forced Pass' : 'STEP 5-2：強制パスを体験しよう',
+            isEn()
+              ? 'All cells on the board are now full. Press the "Forced Pass" button on the bottom right.'
+              : '盤面がすべて埋まり配置できない状態になりました。右下の「強制パス」ボタンを押してください。'
           );
           renderAll();
         } else {
           showTutorialDialog(
-            'STEP 5 完了',
-            'スキップと強制パスをマスターしました！',
-            `
+            isEn() ? 'STEP 5 Complete' : 'STEP 5 完了',
+            isEn() ? 'Mastered Skip & Forced Pass!' : 'スキップと強制パスをマスターしました！',
+            isEn() ? `
+              <p>You experienced how "Forced Pass" works when no empty cells are available.</p>
+              <p class="text-emerald-300 font-bold">Next is the final step: "STEP 6: Practice Match"!</p>
+            ` : `
               <p>配置可能なマスが1つもない時に発生する「強制パス」を体験しました。</p>
               <p class="text-emerald-300 font-bold">次はいよいよ最終ステップ「STEP 6：実戦形式の演習」です！</p>
             `,
-            'STEP 6（実戦演習）へ進む',
+            isEn() ? 'Proceed to STEP 6 (Practice Match)' : 'STEP 6（実戦演習）へ進む',
             () => initTutorialStep(6)
           );
         }
@@ -2290,8 +2621,20 @@
 
       showTutorialDialog(
         'TUTORIAL COMPLETE 🎉',
-        '全6ステップのチュートリアル完了！',
-        `
+        isEn() ? 'All 6 Tutorial Steps Completed!' : '全6ステップのチュートリアル完了！',
+        isEn() ? `
+          <p class="text-sm font-bold text-emerald-300">Congratulations! You have mastered all the rules and tactics of KOSEN.</p>
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center my-2">
+            <div class="text-xs text-slate-400">Practice Match Score</div>
+            <div class="font-mono-num text-lg font-black text-white mt-1">
+              1st: ${ev.scoreA} Cells (Src ${ev.sourcesA}) － 2nd: ${ev.scoreB} Cells (Src ${ev.sourcesB})
+            </div>
+            <div class="text-xs font-bold ${humanWon ? 'text-cyan-300' : 'text-rose-300'} mt-0.5">
+              ${roleName(gameState.winner)} Wins
+            </div>
+          </div>
+          <p>Enjoy playing standard matches against the CPU!</p>
+        ` : `
           <p class="text-sm font-bold text-emerald-300">お疲れ様でした！KOSENのすべてのルールと戦術を習得しました。</p>
           <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center my-2">
             <div class="text-xs text-slate-400">演習対局スコア</div>
@@ -2304,7 +2647,7 @@
           </div>
           <p>続けて通常対局をお楽しみください！</p>
         `,
-        '通常対局を始める',
+        isEn() ? 'Start Standard Match' : '通常対局を始める',
         () => startGame()
       );
     }
@@ -2406,13 +2749,13 @@
       }
       const turnBadge = document.getElementById('ui-active-turn-badge');
       if (gameState.isGameOver) {
-        turnBadge.textContent = '対局終了';
+        turnBadge.textContent = isEn() ? 'Game Over' : '対局終了';
         turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
       } else if (activeKey === 'A') {
-        turnBadge.textContent = '先手の手番';
+        turnBadge.textContent = isEn() ? "1st Player's Turn" : '先手の手番';
         turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
       } else {
-        turnBadge.textContent = '後手の手番';
+        turnBadge.textContent = isEn() ? "2nd Player's Turn" : '後手の手番';
         turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
       }
 
@@ -2443,9 +2786,11 @@
       const oppIsA = oppKey === 'A';
       document.getElementById('opp-dot').className = `w-2.5 h-2.5 rounded-full shrink-0 ${oppIsA ? 'bg-cyan-400' : 'bg-rose-500'}`;
       document.getElementById('opp-role-label').textContent = roleName(oppKey);
-      document.getElementById('opp-type-tag').textContent = oppObj.isHuman ? 'あなた' : 'CPU';
+      document.getElementById('opp-type-tag').textContent = oppObj.isHuman ? (isEn() ? 'YOU' : 'あなた') : 'CPU';
       document.getElementById('opp-sources').textContent = oppIsA ? evalToUse.sourcesA : evalToUse.sourcesB;
-      document.getElementById('opp-skip-status').textContent = oppObj.skipAvailable ? '残1' : '済';
+      document.getElementById('opp-skip-status').textContent = oppObj.skipAvailable
+        ? (isEn() ? '1 Left' : '残1')
+        : (isEn() ? 'Used' : '済');
 
       const oppScoreEl = document.getElementById('opp-score');
       oppScoreEl.textContent = oppIsA ? evalToUse.scoreA : evalToUse.scoreB;
@@ -2473,7 +2818,7 @@
       }`;
 
       document.getElementById('self-dot').className = `w-2.5 h-2.5 rounded-full ${selfIsA ? 'bg-cyan-400' : 'bg-rose-500'}`;
-      document.getElementById('self-role-label').textContent = `${roleName(humanKey)} (あなた)`;
+      document.getElementById('self-role-label').textContent = isEn() ? `${roleName(humanKey)} (YOU)` : `${roleName(humanKey)} (あなた)`;
       document.getElementById('self-sources').textContent = selfIsA ? evalToUse.sourcesA : evalToUse.sourcesB;
 
       const selfScoreVal = selfIsA ? evalToUse.scoreA : evalToUse.scoreB;
@@ -2492,7 +2837,9 @@
         diffEl.classList.add('hidden');
       }
 
-      document.getElementById('self-cycle-info').textContent = `サイクル ${selfObj.cycleTurn + 1}/4手目`;
+      document.getElementById('self-cycle-info').textContent = isEn()
+        ? `Cycle Turn ${selfObj.cycleTurn + 1}/4`
+        : `サイクル ${selfObj.cycleTurn + 1}/4手目`;
 
       const livesGrid = document.getElementById('self-lives-grid');
       livesGrid.innerHTML = [1, 2, 3, 4].map(life => {
@@ -2522,10 +2869,14 @@
           btnClass += ' ring-2 ring-emerald-400';
         }
 
+        const subText = inUnused
+          ? (isEn() ? `${dirCount} Dir${dirCount > 1 ? 's' : ''}` : `${dirCount}方向`)
+          : (isEn() ? 'Used' : '使用済');
+
         return `
           <button type="button" onclick="selectUnusedLife(${life})" class="${btnClass}">
             <span class="font-mono-num font-black text-xs sm:text-sm leading-none">${life}</span>
-            <span class="text-[9px] sm:text-[10px] leading-none mt-1 ${isSelected ? 'font-bold' : 'opacity-80'}">${inUnused ? `${dirCount}方向` : '使用済'}</span>
+            <span class="text-[9px] sm:text-[10px] leading-none mt-1 ${isSelected ? 'font-bold' : 'opacity-80'}">${subText}</span>
           </button>
         `;
       }).join('');
@@ -2536,7 +2887,9 @@
 
       const canSkip = isHumanTurn && hasLegal && selfObj.skipAvailable;
       skipBtn.disabled = !canSkip;
-      skipSub.textContent = !selfObj.skipAvailable ? '使用済' : '残り1回';
+      skipSub.textContent = !selfObj.skipAvailable
+        ? (isEn() ? 'Used' : '使用済')
+        : (isEn() ? '1 Left' : '残り1回');
 
       if (gameState.isTutorial && gameState.tutorialRequirement?.type === 'skip') {
         skipBtn.classList.add('ring-2', 'ring-emerald-400', 'animate-pulse');
@@ -2624,10 +2977,10 @@
           let ownerText = '<span class="text-slate-500/80">-</span>';
           if (owner === 'A') {
             const bars = '■'.repeat(Math.min(4, diff));
-            ownerText = `<span class="text-cyan-200 font-bold">先 <span class="text-cyan-300 tracking-tighter">${bars}</span></span>`;
+            ownerText = `<span class="text-cyan-200 font-bold">${roleShortName('A')} <span class="text-cyan-300 tracking-tighter">${bars}</span></span>`;
           } else if (owner === 'B') {
             const bars = '■'.repeat(Math.min(4, diff));
-            ownerText = `<span class="text-rose-200 font-bold">後 <span class="text-rose-300 tracking-tighter">${bars}</span></span>`;
+            ownerText = `<span class="text-rose-200 font-bold">${roleShortName('B')} <span class="text-rose-300 tracking-tighter">${bars}</span></span>`;
           }
 
           const bottomBarHTML = `
@@ -2706,9 +3059,11 @@
         popup.style.bottom = 'auto';
       }
 
-      document.getElementById('popup-coord-label').textContent = `座標 (${r}, ${c})`;
+      document.getElementById('popup-coord-label').textContent = isEn() ? `Coord (${r}, ${c})` : `座標 (${r}, ${c})`;
       const lifeLabel = document.getElementById('popup-life-label');
-      lifeLabel.textContent = `ライフ${selectedLife} (${neededDirs}方向)`;
+      lifeLabel.textContent = isEn()
+        ? `Life ${selectedLife} (${neededDirs} Dir${neededDirs > 1 ? 's' : ''})`
+        : `ライフ${selectedLife} (${neededDirs}方向)`;
       lifeLabel.className = `ml-1 px-1.5 py-0.5 rounded font-mono-num text-[11px] font-bold ${
         isA ? 'bg-cyan-500/20 text-cyan-300' : 'bg-rose-500/20 text-rose-300'
       }`;
@@ -2728,7 +3083,9 @@
               ? 'border-cyan-300 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-black'
               : 'border-rose-300 bg-rose-500 text-white shadow-md shadow-rose-500/30 font-black'
           }`;
-          sub.textContent = neededDirs > 1 ? `選択${orderIdx + 1}` : '選択中';
+          sub.textContent = neededDirs > 1
+            ? (isEn() ? `#${orderIdx + 1}` : `選択${orderIdx + 1}`)
+            : (isEn() ? 'Selected' : '選択中');
         } else {
           btn.className = 'rounded-2xl border-2 border-slate-700 bg-slate-800 hover:border-slate-500 text-slate-200 flex flex-col items-center justify-center transition-all';
           sub.textContent = dKey === 'N' ? '▲' : dKey === 'S' ? '▼' : dKey === 'E' ? '▶' : '◀';
@@ -2749,9 +3106,13 @@
         const delta = nextScore - curScore;
 
         if (totalDestroyed > 0) {
-          infoEl.innerHTML = `<span class="text-amber-300 font-bold">💥 ${totalDestroyed}個の光源を破壊！ (所有 ${delta >= 0 ? `+${delta}` : delta})</span>`;
+          infoEl.innerHTML = isEn()
+            ? `<span class="text-amber-300 font-bold">💥 Destroys ${totalDestroyed} source${totalDestroyed > 1 ? 's' : ''}! (Cells ${delta >= 0 ? `+${delta}` : delta})</span>`
+            : `<span class="text-amber-300 font-bold">💥 ${totalDestroyed}個の光源を破壊！ (所有 ${delta >= 0 ? `+${delta}` : delta})</span>`;
         } else {
-          infoEl.innerHTML = `<span class="text-emerald-300 font-bold">所有マス変化: ${delta >= 0 ? `+${delta}` : delta} マス</span>`;
+          infoEl.innerHTML = isEn()
+            ? `<span class="text-emerald-300 font-bold">Territory change: ${delta >= 0 ? `+${delta}` : delta} cells</span>`
+            : `<span class="text-emerald-300 font-bold">所有マス変化: ${delta >= 0 ? `+${delta}` : delta} マス</span>`;
         }
 
         confirmBtn.disabled = false;
@@ -2798,7 +3159,8 @@
       document.getElementById('screen-title').classList.remove('hidden');
       document.getElementById('screen-game').classList.add('hidden');
 
-      // 2. Apply initial PC/Mobile layout structure and run engine verification
+      // 2. Initialize in Japanese by default, apply layout & run engine self-test
+      setLanguage('ja');
       applyLayoutMode(window.innerWidth >= 880 ? 'pc' : 'mobile');
       runHeadlessSelfTest();
     });
