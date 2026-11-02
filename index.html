@@ -394,12 +394,12 @@
             </div>
           </div>
 
-          <!-- Unused Life Selector Row + Skip/Pass Button -->
+            <!-- Unused Life Selector Row + Skip/Pass Button -->
           <div class="flex items-stretch gap-2">
             <div class="flex-1">
               <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
                 <span id="lbl-self-unused" class="font-bold text-slate-300">未使用ライフ</span>
-                <span id="self-cycle-info" class="font-mono-num">サイクル 2/4手目</span>
+                <span id="self-cycle-info" class="font-mono-num">サイクル 1/4手目</span>
               </div>
               <div id="self-lives-grid" class="grid grid-cols-4 gap-1.5">
                 <!-- Populated by JS -->
@@ -637,20 +637,33 @@
     };
     const DIR_KEYS = ['N', 'S', 'E', 'W'];
 
-    const DIR_COMBOS_BY_LIFE = { 1: [], 2: [], 3: [], 4: [] };
-    (function buildCombos() {
-      for (let mask = 1; mask < 16; mask++) {
-        const combo = [];
-        for (let i = 0; i < 4; i++) {
-          if (mask & (1 << i)) combo.push(DIR_KEYS[i]);
-        }
-        const life = 5 - combo.length;
-        DIR_COMBOS_BY_LIFE[life].push(combo);
-      }
-    })();
+    const DIR_COMBOS_BY_LIFE = {
+      1: [['N', 'S', 'E', 'W']],
+      2: [
+        ['N', 'S', 'E'], ['N', 'S', 'W'], ['N', 'E', 'W'], ['S', 'E', 'W']
+      ],
+      3: [
+        ['N', 'S'], ['N', 'E'], ['N', 'W'],
+        ['S', 'E'], ['S', 'W'],
+        ['E', 'W']
+      ],
+      4: [
+        ['N'], ['S'], ['E'], ['W']
+      ]
+    };
 
     function isEn() {
       return currentLang === 'en';
+    }
+
+    function cpuLabel() {
+      const lv = (gameState && gameState.isTutorial) ? 2 : setupConfig.cpuLevel;
+      if (isEn()) {
+        const namesEn = { 1: 'Easy', 2: 'Normal', 3: 'Hard' };
+        return `CPU(${namesEn[lv] || 'Normal'})`;
+      }
+      const namesJa = { 1: '初級', 2: '中級', 3: '上級' };
+      return `CPU(${namesJa[lv] || '中級'})`;
     }
 
     function dirLabel(dKey) {
@@ -680,13 +693,13 @@
             <p class="mt-1 text-amber-300">* If both players have the same number of territory cells, <strong>the player with more remaining light sources on the board</strong> wins. If both territory cells and remaining light sources are tied, the 2nd Player wins.</p>
           </div>
           <div>
-            <h4 class="font-bold text-cyan-400 mb-1">■ Initial Placement & First Cycle</h4>
-            <p>Before the game begins, both players consume "Life 4 (1 Direction)" from their first cycle to place the following initial light sources:</p>
+            <h4 class="font-bold text-cyan-400 mb-1">■ Initial Placement & First-Move Constraint</h4>
+            <p>Before the game begins, the following two initial light sources are placed on the board for free (without consuming any Life cycle resources):</p>
             <ul class="list-disc list-inside mt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
               <li>1st Player: Coordinate (2, 2) facing East (Life 4)</li>
               <li>2nd Player: Coordinate (3, 3) facing West (Life 4)</li>
             </ul>
-            <p class="mt-1">Therefore, both players start their first cycle with <strong>Unused Lives "1, 2, 3" remaining</strong>.</p>
+            <p class="mt-1">Both players start with all <strong>Unused Lives "1, 2, 3, 4"</strong> available. However, as an <strong>initial constraint on each player's very first turn</strong>, you must place a light source with <strong>2 or more directions (Life 1, 2, or 3)</strong> (Life 4 and Voluntary Skip cannot be used on your first turn).</p>
           </div>
           <div>
             <h4 class="font-bold text-cyan-400 mb-1">■ Unused Life & Ray Directions</h4>
@@ -705,8 +718,8 @@
           </div>
           <div>
             <h4 class="font-bold text-cyan-400 mb-1">■ Voluntary Skip & Forced Pass</h4>
-            <p><strong>Skip:</strong> Once per game, when legal placements exist, you may consume 1 unused Life resource to skip your turn.<br>
-            <strong>Forced Pass:</strong> When no empty cells exist on the board, you must consume 1 unused Life resource to pass (this does not consume your voluntary skip right). The game ends when two consecutive forced passes occur or when the maximum turn limit (64 turns) is reached.</p>
+            <p><strong>Skip:</strong> Once per game (from your 2nd turn onwards), when legal placements exist, you may consume 1 unused Life resource to skip your turn.<br>
+            <strong>Forced Pass:</strong> When no legal placement exists, you must consume 1 unused Life resource to pass (this does not consume your voluntary skip right). The game ends when two consecutive forced passes occur or when the maximum turn limit (64 turns) is reached.</p>
           </div>
         `;
       }
@@ -717,13 +730,13 @@
           <p class="mt-1 text-amber-300">※所有マス数が同じ場合は、<strong>ゲーム終了時に盤面に残存している自身の光源数が多いプレイヤー</strong>の勝利となります。所有マス数・残存光源数もすべて同じ場合に限り、後手の勝利となります。</p>
         </div>
         <div>
-          <h4 class="font-bold text-cyan-400 mb-1">■ 初期配置と最初のサイクル</h4>
-          <p>対局開始前に、両プレイヤーは最初のサイクルの「ライフ4（1方向）」を消費して以下の初期配置を行った状態からスタートします。</p>
+          <h4 class="font-bold text-cyan-400 mb-1">■ 初期配置と初手の特別制約</h4>
+          <p>対局開始前に、ライフ資源を消費せず「無料」で以下の2つの初期光源が配置された状態からスタートします。</p>
           <ul class="list-disc list-inside mt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
             <li>先手：座標 (2, 2) に 東向き（ライフ4）</li>
             <li>後手：座標 (3, 3) に 西向き（ライフ4）</li>
           </ul>
-          <p class="mt-1">そのため、両プレイヤーは最初のサイクルを<strong>未使用ライフ「1, 2, 3」の3つが残った状態</strong>から開始します。</p>
+          <p class="mt-1">両プレイヤーとも<strong>未使用ライフ「1, 2, 3, 4」がすべて揃った状態（サイクル1/4手目）</strong>から開始しますが、<strong>各プレイヤーの最初の手番（初手）に限り、必ず2方向以上（ライフ1, 2, 3）の光源を配置</strong>しなければなりません（初手ではライフ4の配置および自発的スキップは選択できません）。</p>
         </div>
         <div>
           <h4 class="font-bold text-cyan-400 mb-1">■ 未使用ライフと照射方向</h4>
@@ -742,8 +755,8 @@
         </div>
         <div>
           <h4 class="font-bold text-cyan-400 mb-1">■ スキップと強制パス</h4>
-          <p><strong>スキップ：</strong>ゲーム中1回だけ、配置可能な状態で未使用ライフを1つ消費して手番をパスできます。<br>
-          <strong>強制パス：</strong>配置できる空きマスがない場合、未使用ライフを1つ消費して強制パスとなります（スキップ権は消費しません）。両者が連続して強制パスを行うか、最大手番数（64手）に達するとゲーム終了です。</p>
+          <p><strong>スキップ：</strong>ゲーム中1回だけ（自身の2手目以降）、配置可能な状態で未使用ライフを1つ消費して手番をパスできます。<br>
+          <strong>強制パス：</strong>合法な配置が1つもない場合、未使用ライフを1つ消費して強制パスとなります（スキップ権は消費しません）。両者が連続して強制パスを行うか、最大手番数（64手）に達するとゲーム終了です。</p>
         </div>
       `;
     }
@@ -972,6 +985,9 @@
     let pendingSkipActionType = 'B';
     let toastTimer = null;
     let cpuTurnTimer = null;
+    let endGameTimer = null;
+    let tutorialTimer = null;
+    let activeSessionId = 0;
 
     let savedTutorialStep = 1;
 
@@ -979,6 +995,14 @@
       if (cpuTurnTimer) {
         clearTimeout(cpuTurnTimer);
         cpuTurnTimer = null;
+      }
+      if (endGameTimer) {
+        clearTimeout(endGameTimer);
+        endGameTimer = null;
+      }
+      if (tutorialTimer) {
+        clearTimeout(tutorialTimer);
+        tutorialTimer = null;
       }
     }
 
@@ -1138,18 +1162,31 @@
     }
 
     function hasAnyLegalPlacementForLife(state, playerKey, life) {
-      if (!state.players[playerKey].unusedLives.includes(life)) return false;
+      const p = state.players[playerKey];
+      if (!p.unusedLives.includes(life)) return false;
+      if (!p.firstMoveDone && life === 4) return false;
       return hasAnyEmptyCell(state.board);
     }
 
     function hasAnyLegalPlacement(state, playerKey) {
-      if (state.players[playerKey].unusedLives.length === 0) return false;
+      const p = state.players[playerKey];
+      const allowedLives = p.unusedLives.filter(l => p.firstMoveDone || l !== 4);
+      if (allowedLives.length === 0) return false;
       return hasAnyEmptyCell(state.board);
     }
 
     function validatePlacement(state, playerKey, r, c, life, dirs) {
-      if (!life || !state.players[playerKey].unusedLives.includes(life)) {
+      const p = state.players[playerKey];
+      if (!life || !p.unusedLives.includes(life)) {
         return { valid: false, reason: isEn() ? 'Select an unused Life resource' : '未使用ライフを選択してください' };
+      }
+      if (!p.firstMoveDone && life === 4) {
+        return {
+          valid: false,
+          reason: isEn()
+            ? 'First turn constraint: Must place 2+ directions (Life 1, 2, or 3)'
+            : '初手制約：最初の手番ではライフ4（1方向）は使用できません'
+        };
       }
       if (r === null || c === null || state.board[r][c] !== null) {
         return { valid: false, reason: isEn() ? 'Select an empty cell' : '空きマスを選択してください' };
@@ -1210,8 +1247,9 @@
 
     /* --------------------------------------------------------------------------
      * INITIAL BOARD & GAME START
-     * Pre-places A at (2,2) East (life 4) and B at (3,3) West (life 4).
-     * Both players start their first cycle with unusedLives: [1, 2, 3] (cycleTurn: 1).
+     * Pre-places A at (2,2) East (life 4) and B at (3,3) West (life 4) for FREE.
+     * Both players start their first cycle with unusedLives: [1, 2, 3, 4], cycleTurn: 0,
+     * and firstMoveDone: false (cannot use Life 4 or Skip on their first move).
      * -------------------------------------------------------------------------- */
     function createInitialStandardBoard() {
       const board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
@@ -1222,10 +1260,13 @@
 
     function startGame(isDemo = false) {
       clearPendingTimers();
+      activeSessionId++;
+      const sessionId = activeSessionId;
       const humanRole = isDemo ? 'A' : (Math.random() < 0.5 ? 'A' : 'B');
       const initialBoard = createInitialStandardBoard();
 
       gameState = {
+        sessionId: sessionId,
         isTutorial: false,
         isDemo: isDemo,
         tutorialStep: 0,
@@ -1246,17 +1287,21 @@
         players: {
           A: {
             isHuman: isDemo ? false : (humanRole === 'A'),
-            unusedLives: [1, 2, 3], // Life 4 already consumed for initial (2,2) East placement
-            cycleTurn: 1,
+            unusedLives: [1, 2, 3, 4],
+            cycleTurn: 0,
+            firstMoveDone: false,
             skipAvailable: true,
-            totalTurnsTaken: 0
+            totalTurnsTaken: 0,
+            surrenderCount: 0
           },
           B: {
             isHuman: isDemo ? false : (humanRole === 'B'),
-            unusedLives: [1, 2, 3], // Life 4 already consumed for initial (3,3) West placement
-            cycleTurn: 1,
+            unusedLives: [1, 2, 3, 4],
+            cycleTurn: 0,
+            firstMoveDone: false,
             skipAvailable: true,
-            totalTurnsTaken: 0
+            totalTurnsTaken: 0,
+            surrenderCount: 0
           }
         }
       };
@@ -1285,7 +1330,7 @@
       requestAnimationFrame(updateBoardSquareSize);
 
       if (isDemo) {
-        showToast(isEn() ? 'Demo Match Started: 1st CPU vs 2nd CPU' : 'デモプレイ開始：先手CPU vs 後手CPU');
+        showToast(isEn() ? `Demo Match Started: 1st ${cpuLabel()} vs 2nd ${cpuLabel()}` : `デモプレイ開始：先手${cpuLabel()} vs 後手${cpuLabel()}`);
       } else {
         showToast(isEn() ? `You are the ${roleName(humanRole)}` : `あなたは「${roleName(humanRole)}」です`);
       }
@@ -1310,17 +1355,17 @@
           return;
         }
       }
-      if (selectedLife && p.unusedLives.includes(selectedLife)) {
+      if (selectedLife && p.unusedLives.includes(selectedLife) && (p.firstMoveDone || selectedLife !== 4)) {
         return;
       }
       const preferredOrder = [3, 2, 1, 4];
       for (const l of preferredOrder) {
-        if (p.unusedLives.includes(l)) {
+        if (p.unusedLives.includes(l) && (p.firstMoveDone || l !== 4)) {
           selectedLife = l;
           return;
         }
       }
-      selectedLife = p.unusedLives[0] || null;
+      selectedLife = p.unusedLives.find(l => p.firstMoveDone || l !== 4) || null;
     }
 
     function playAgain() {
@@ -1334,11 +1379,21 @@
     }
 
     function backToTitle() {
+      activeSessionId++;
       clearPendingTimers();
       isAnimating = false;
+      if (gameState) {
+        gameState.isGameOver = true;
+        gameState = null;
+      }
+      selectedCell = null;
+      selectedDirsQueue = [];
+      selectedLife = null;
+
       document.getElementById('modal-result').classList.add('hidden');
       document.getElementById('modal-confirm-title').classList.add('hidden');
       document.getElementById('modal-surrender').classList.add('hidden');
+      document.getElementById('modal-skip').classList.add('hidden');
       document.getElementById('modal-tutorial-info').classList.add('hidden');
       document.getElementById('modal-tutorial-steps').classList.add('hidden');
       document.getElementById('floating-result-bar').classList.add('hidden');
@@ -1395,10 +1450,19 @@
     function selectUnusedLife(lifeVal) {
       if (!gameState || gameState.isGameOver || isAnimating) return;
       const activeKey = gameState.activePlayer;
-      if (!gameState.players[activeKey].isHuman) return;
+      const p = gameState.players[activeKey];
+      if (!p.isHuman) return;
 
-      if (!gameState.players[activeKey].unusedLives.includes(lifeVal)) {
+      if (!p.unusedLives.includes(lifeVal)) {
         showToast(isEn() ? `Life ${lifeVal} has already been used in this cycle` : `ライフ ${lifeVal} はこのサイクルで使用済みです`);
+        return;
+      }
+      if (!p.firstMoveDone && lifeVal === 4) {
+        showToast(
+          isEn()
+            ? 'First turn constraint: Must place 2+ directions (Life 1, 2, or 3)'
+            : '初手制約：最初の手番では2方向以上（ライフ1, 2, 3）のみ配置できます'
+        );
         return;
       }
       if (gameState.isTutorial && gameState.tutorialRequirement) {
@@ -1454,7 +1518,7 @@
 
     function initPopupDirectionsForCell() {
       const neededDirs = 5 - selectedLife;
-      if (neededDirs === 4 && (!gameState.isTutorial || !gameState.tutorialRequirement?.dirs)) {
+      if (neededDirs === 4) {
         selectedDirsQueue = ['N', 'S', 'E', 'W'];
       } else {
         selectedDirsQueue = [];
@@ -1464,12 +1528,15 @@
     /**
      * FIFO Direction Selection inside Popup:
      * - Wall directions ARE allowed.
+     * - When Life 1 (4 directions) is selected, all 4 directions remain fixed and cannot be deselected.
      * - Selecting more than `neededDirs` automatically cancels the oldest selected direction.
      */
     function onTapPopupDirection(dKey) {
       if (!gameState || !selectedCell || !selectedLife) return;
 
       const neededDirs = 5 - selectedLife;
+      if (neededDirs === 4) return;
+
       const existingIdx = selectedDirsQueue.indexOf(dKey);
 
       if (existingIdx !== -1) {
@@ -1514,6 +1581,7 @@
       p.unusedLives = p.unusedLives.filter(l => l !== consumedLife);
       p.cycleTurn++;
       p.totalTurnsTaken++;
+      p.firstMoveDone = true;
 
       if (p.cycleTurn >= 4 || p.unusedLives.length === 0) {
         p.cycleTurn = 0;
@@ -1522,6 +1590,8 @@
     }
 
     async function performPlacement(playerKey, r, c, dirs) {
+      if (!gameState || gameState.isGameOver) return;
+      const sessionAtStart = gameState.sessionId;
       isAnimating = true;
       const isDemo = gameState && gameState.isDemo;
       const stepDelay = isDemo ? 140 : 360;
@@ -1534,11 +1604,13 @@
 
       if (sim.chainSteps.length > 0) {
         for (let i = 0; i < sim.chainSteps.length; i++) {
-          if (!gameState || gameState.isGameOver) return;
+          if (!gameState || gameState.isGameOver || gameState.sessionId !== sessionAtStart || activeSessionId !== sessionAtStart) return;
           const step = sim.chainSteps[i];
           await new Promise(res => setTimeout(res, stepDelay));
+          if (!gameState || gameState.isGameOver || gameState.sessionId !== sessionAtStart || activeSessionId !== sessionAtStart) return;
           renderBoardWithDestroyingHighlight(step.destroyed);
           await new Promise(res => setTimeout(res, stepDelay));
+          if (!gameState || gameState.isGameOver || gameState.sessionId !== sessionAtStart || activeSessionId !== sessionAtStart) return;
           gameState.board = cloneBoard(step.boardAfter);
           gameState.eval = step.evalAfter;
           renderAll();
@@ -1547,7 +1619,7 @@
         await new Promise(res => setTimeout(res, isDemo ? 70 : 180));
       }
 
-      if (!gameState || gameState.isGameOver) return;
+      if (!gameState || gameState.isGameOver || gameState.sessionId !== sessionAtStart || activeSessionId !== sessionAtStart) return;
       if (gameState.board[r][c]) delete gameState.board[r][c].justPlaced;
       gameState.consecutiveForcedPasses = 0;
       consumeLifeAndAdvanceCycle(playerKey, life);
@@ -1602,6 +1674,7 @@
 
     function checkAndTriggerTurn() {
       if (!gameState || gameState.isGameOver) return;
+      const sessionAtTrigger = gameState.sessionId;
       const activeKey = gameState.activePlayer;
       const activeObj = gameState.players[activeKey];
 
@@ -1611,6 +1684,7 @@
         const delay = gameState.isDemo ? 160 : 400;
         clearPendingTimers();
         cpuTurnTimer = setTimeout(() => {
+          if (!gameState || gameState.isGameOver || gameState.sessionId !== sessionAtTrigger || activeSessionId !== sessionAtTrigger) return;
           isAnimating = false;
           executeCPUTurn(activeKey);
         }, delay);
@@ -1618,6 +1692,9 @@
     }
 
     function endGame(reasonText, forcedWinner = null) {
+      if (!gameState) return;
+      const sessionAtEnd = gameState.sessionId;
+      clearPendingTimers();
       gameState.isGameOver = true;
       gameState.endReason = reasonText;
       gameState.eval = calculateRaysAndOwnership(gameState.board);
@@ -1639,18 +1716,21 @@
       }
 
       if (gameState.isTutorial && gameState.tutorialStep === 6) {
-        setTimeout(() => {
+        endGameTimer = setTimeout(() => {
+          if (!gameState || gameState.sessionId !== sessionAtEnd || activeSessionId !== sessionAtEnd) return;
           showTutorialCompleteModal();
         }, 450);
         return;
       }
 
-      setTimeout(() => {
+      endGameTimer = setTimeout(() => {
+        if (!gameState || gameState.sessionId !== sessionAtEnd || activeSessionId !== sessionAtEnd) return;
         showResultModal();
       }, 400);
     }
 
     function showResultModal() {
+      if (!gameState || document.getElementById('screen-game').classList.contains('hidden')) return;
       const ev = gameState.eval;
       const winner = gameState.winner;
       const humanWon = gameState.players[winner].isHuman;
@@ -1660,8 +1740,9 @@
 
       document.getElementById('result-reason-badge').textContent = gameState.endReason;
       const youStr = isEn() ? 'YOU' : 'あなた';
-      document.getElementById('result-label-A').textContent = `${roleName('A')} (${gameState.players.A.isHuman ? youStr : 'CPU'})`;
-      document.getElementById('result-label-B').textContent = `${roleName('B')} (${gameState.players.B.isHuman ? youStr : 'CPU'})`;
+      const cpuStr = cpuLabel();
+      document.getElementById('result-label-A').textContent = `${roleName('A')} (${gameState.players.A.isHuman ? youStr : cpuStr})`;
+      document.getElementById('result-label-B').textContent = `${roleName('B')} (${gameState.players.B.isHuman ? youStr : cpuStr})`;
       document.getElementById('result-score-A').textContent = ev.scoreA;
       document.getElementById('result-score-B').textContent = ev.scoreB;
       document.getElementById('result-sources-A').textContent = isEn() ? `${ev.sourcesA}` : `${ev.sourcesA}個`;
@@ -1700,8 +1781,8 @@
       }
 
       subEl.textContent = isEn()
-        ? `${roleName(winner)} (${humanWon ? 'YOU' : 'CPU'}) Wins!`
-        : `${roleName(winner)}（${humanWon ? 'あなた' : 'CPU'}）の勝利！`;
+        ? `${roleName(winner)} (${humanWon ? 'YOU' : cpuStr}) Wins!`
+        : `${roleName(winner)}（${humanWon ? 'あなた' : cpuStr}）の勝利！`;
     }
 
     function toggleInspectBoard() {
@@ -1731,11 +1812,13 @@
           A: {
             unusedLives: [...gs.players.A.unusedLives],
             cycleTurn: gs.players.A.cycleTurn,
+            firstMoveDone: gs.players.A.firstMoveDone,
             skipAvailable: gs.players.A.skipAvailable
           },
           B: {
             unusedLives: [...gs.players.B.unusedLives],
             cycleTurn: gs.players.B.cycleTurn,
+            firstMoveDone: gs.players.B.firstMoveDone,
             skipAvailable: gs.players.B.skipAvailable
           }
         }
@@ -1746,7 +1829,7 @@
      * Generates all legal actions for `sState.currentPlayer`.
      * Action types:
      * - { type: 'place', r, c, dirs, life }
-     * - { type: 'skip', life } (voluntary skip if placements exist and skipAvailable)
+     * - { type: 'skip', life } (voluntary skip if placements exist, skipAvailable, and firstMoveDone)
      * - { type: 'pass', life } (forced pass if no placements exist)
      */
     function getLegalActions(sState) {
@@ -1759,6 +1842,7 @@
         for (let c = 0; c < N; c++) {
           if (sState.board[r][c] !== null) continue;
           for (const life of p.unusedLives) {
+            if (!p.firstMoveDone && life === 4) continue;
             const combos = DIR_COMBOS_BY_LIFE[life];
             for (let i = 0; i < combos.length; i++) {
               actions.push({ type: 'place', r, c, dirs: combos[i], life });
@@ -1768,7 +1852,7 @@
       }
 
       if (actions.length > 0) {
-        if (p.skipAvailable) {
+        if (p.skipAvailable && p.firstMoveDone) {
           for (const life of p.unusedLives) {
             actions.push({ type: 'skip', life });
           }
@@ -1832,10 +1916,10 @@
         gameOver: isGameOver,
         players: {
           A: pKey === 'A'
-            ? { unusedLives: nextUnused, cycleTurn: nextCycleTurn, skipAvailable: nextSkipAvail }
+            ? { unusedLives: nextUnused, cycleTurn: nextCycleTurn, firstMoveDone: true, skipAvailable: nextSkipAvail }
             : { ...sState.players.A, unusedLives: [...sState.players.A.unusedLives] },
           B: pKey === 'B'
-            ? { unusedLives: nextUnused, cycleTurn: nextCycleTurn, skipAvailable: nextSkipAvail }
+            ? { unusedLives: nextUnused, cycleTurn: nextCycleTurn, firstMoveDone: true, skipAvailable: nextSkipAvail }
             : { ...sState.players.B, unusedLives: [...sState.players.B.unusedLives] }
         }
       };
@@ -1884,12 +1968,14 @@
       const enemySources = isPerspA ? ev.sourcesB : ev.sourcesA;
       const sourceCountScore = ownSources - enemySources;
 
-      return (
+      const rawScore = (
         10.0 * territoryScore
         + 0.15 * rayBalance
         + 2.5 * threatScore
         + 0.5 * sourceCountScore
       );
+      // Python版のソート順を完全再現するため、微細な浮動小数点誤差を丸める
+      return Math.round(rawScore * 1000) / 1000;
     }
 
     /**
@@ -1910,7 +1996,8 @@
         return perspectiveKey === 'B' ? 1000.0 : -1000.0;
       }
 
-      return 1000.0 * difference;
+      const rawScore = 1000.0 * difference;
+      return Math.round(rawScore * 1000) / 1000;
     }
 
     function randomChoice(arr) {
@@ -2028,8 +2115,46 @@
       return randomChoice(bestActions);
     }
 
+    function executeCPUSurrender(cpuKey) {
+      if (!gameState || gameState.isGameOver) return;
+      clearPendingTimers();
+      isAnimating = false;
+      selectedCell = null;
+      selectedDirsQueue = [];
+      const oppKey = cpuKey === 'A' ? 'B' : 'A';
+      const cpuStr = cpuLabel();
+      const msg = isEn()
+        ? `Match ended by ${roleName(cpuKey)} (${cpuStr}) surrender`
+        : `${roleName(cpuKey)}（${cpuStr}）のサレンダー（投了）により対局終了`;
+      endGame(msg, oppKey);
+    }
+
     function executeCPUTurn(cpuKey) {
       if (!gameState || gameState.isGameOver) return;
+
+      const cpuPlayer = gameState.players[cpuKey];
+      const isA = cpuKey === 'A';
+      const ev = gameState.eval;
+
+      // CPUのターン開始時の投了チェック
+      if (gameState.turnCount >= 40) {
+        const ownScore = isA ? ev.scoreA : ev.scoreB;
+        const oppScore = isA ? ev.scoreB : ev.scoreA;
+
+        if (oppScore - ownScore >= 11) {
+          // 11マス以上負けていればカウントアップ
+          cpuPlayer.surrenderCount = (cpuPlayer.surrenderCount || 0) + 1;
+
+          // 3回連続（3手番連続）で条件を満たしたら投了
+          if (cpuPlayer.surrenderCount >= 3) {
+            executeCPUSurrender(cpuKey);
+            return;
+          }
+        } else {
+          // 10マス差以下に縮まったら、連続カウントを0にリセット
+          cpuPlayer.surrenderCount = 0;
+        }
+      }
 
       const sState = createSearchStateFromGame(gameState);
       const level = gameState.isTutorial ? 2 : setupConfig.cpuLevel;
@@ -2060,7 +2185,17 @@
     function openSkipModal(actionType) {
       if (!gameState || gameState.isGameOver || isAnimating) return;
       const activeKey = gameState.activePlayer;
-      if (!gameState.players[activeKey].isHuman) return;
+      const p = gameState.players[activeKey];
+      if (!p.isHuman) return;
+
+      if (actionType === 'B' && !p.firstMoveDone) {
+        showToast(
+          isEn()
+            ? 'Cannot use Voluntary Skip on your first turn'
+            : '最初の手番（初手）では自発的スキップは選択できません'
+        );
+        return;
+      }
 
       if (gameState.isTutorial && gameState.tutorialRequirement) {
         const req = gameState.tutorialRequirement;
@@ -2134,7 +2269,7 @@
           { step: 1, title: 'STEP 1: Controls & Ray Emission', summary: 'Learn how to select Unused Life -> Cell -> Direction and how rays travel' },
           { step: 2, title: 'STEP 2: Territory Ownership & Tie-Breaker', summary: 'Learn how ray counts determine cell ownership and tie-breaker rules' },
           { step: 3, title: 'STEP 3: Destroying Light Sources', summary: 'Experience destroying an opponent source when ray difference >= Life' },
-          { step: 4, title: 'STEP 4: Initial Setup & Life Cycle', summary: 'Learn the initial (2,2)/(3,3) setup, Life 1-3 start, and cycle reset' },
+          { step: 4, title: 'STEP 4: First-Move Rule & Life Cycle', summary: 'Learn the 2+ direction first-move constraint and 4-turn Life cycle reset' },
           { step: 5, title: 'STEP 5: Voluntary Skip & Forced Pass', summary: 'Experience the difference between Voluntary Skip and Forced Pass' },
           { step: 6, title: 'STEP 6: Practice Match (6×6 Board)', summary: 'Play a full match from the official initial setup on the 6×6 board' }
         ];
@@ -2143,7 +2278,7 @@
         { step: 1, title: 'STEP 1：基本操作と光線の照射', summary: '未使用ライフ選択→マス選択→方向決定の操作と光線の直進を学びます' },
         { step: 2, title: 'STEP 2：マスの所有権と勝敗判定', summary: '光線数の比較による所有権と、同点時の残存光源数判定を学びます' },
         { step: 3, title: 'STEP 3：光源の破壊', summary: '光線数の差がライフ値以上になった時の光源破壊を体験します' },
-        { step: 4, title: 'STEP 4：初期配置とライフ資源の管理', summary: '初期配置(2,2)/(3,3)によるライフ1〜3開始とサイクルのリセットを学びます' },
+        { step: 4, title: 'STEP 4：初手制約とライフ資源の管理', summary: '初手の2方向以上配置制約と、4手1サイクルの資源リセットを学びます' },
         { step: 5, title: 'STEP 5：スキップと強制パス', summary: '自発的スキップと強制パスの違いを体験します' },
         { step: 6, title: 'STEP 6：実戦形式の演習（6×6盤面）', summary: '公式初期配置からスタートし、6×6盤面で最後まで対局します' }
       ];
@@ -2204,10 +2339,13 @@
     }
 
     function initTutorialStep(stepNum) {
+      clearPendingTimers();
+      activeSessionId++;
       savedTutorialStep = stepNum;
       const emptyBoard = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
 
       gameState = {
+        sessionId: activeSessionId,
         isTutorial: true,
         tutorialStep: stepNum,
         tutorialSubstep: 1,
@@ -2225,8 +2363,8 @@
         board: emptyBoard,
         eval: calculateRaysAndOwnership(emptyBoard),
         players: {
-          A: { isHuman: true, unusedLives: [1, 2, 3, 4], cycleTurn: 0, skipAvailable: true, totalTurnsTaken: 0 },
-          B: { isHuman: false, unusedLives: [1, 2, 3, 4], cycleTurn: 0, skipAvailable: true, totalTurnsTaken: 0 }
+          A: { isHuman: true, unusedLives: [1, 2, 3, 4], cycleTurn: 0, firstMoveDone: true, skipAvailable: true, totalTurnsTaken: 0, surrenderCount: 0 },
+          B: { isHuman: false, unusedLives: [1, 2, 3, 4], cycleTurn: 0, firstMoveDone: true, skipAvailable: true, totalTurnsTaken: 0, surrenderCount: 0 }
         }
       };
 
@@ -2355,43 +2493,44 @@
       } else if (stepNum === 4) {
         gameState.board = createInitialStandardBoard();
         gameState.eval = calculateRaysAndOwnership(gameState.board);
-        gameState.players.A.unusedLives = [1, 2, 3];
-        gameState.players.A.cycleTurn = 1;
-        gameState.players.B.unusedLives = [1, 2, 3];
-        gameState.players.B.cycleTurn = 1;
+        gameState.players.A.unusedLives = [1, 2, 3, 4];
+        gameState.players.A.cycleTurn = 0;
+        gameState.players.A.firstMoveDone = false;
+        gameState.players.B.unusedLives = [1, 2, 3, 4];
+        gameState.players.B.cycleTurn = 0;
+        gameState.players.B.firstMoveDone = false;
 
         gameState.tutorialRequirement = { type: 'place', life: 3 };
         selectedLife = 3;
         setGuideBanner(
-          isEn() ? 'STEP 4-1: Initial Setup & Unused Life "3"' : 'STEP 4-1：初期配置と未使用ライフ「3」の配置',
+          isEn() ? 'STEP 4-1: First-Move Rule & Unused Life "3"' : 'STEP 4-1：初手制約と未使用ライフ「3」の配置',
           isEn()
-            ? 'Because Life 4 was used for the initial setup, you start with Unused Lives [1, 2, 3]. Place Life "3 (2 Dirs)" on any empty cell.'
-            : '初期配置でライフ4が使われているため、未使用ライフは [1, 2, 3] から始まります。ライフ「3（2方向）」を空きマスに配置しましょう。'
+            ? 'You start with Unused Lives [1, 2, 3, 4], but on your first turn you must place 2+ directions (Life 1, 2, or 3). Place Life "3" on any empty cell.'
+            : '開始時は未使用ライフ [1, 2, 3, 4] が揃っていますが、初手は必ず2方向以上（ライフ1, 2, 3）を配置します。ライフ「3（2方向）」を空きマスに配置しましょう。'
         );
         showTutorialDialog(
           'STEP 4 / 6',
-          isEn() ? 'Initial Setup & Life Resource Cycle' : '初期配置とライフ資源の管理',
+          isEn() ? 'First-Move Constraint & Life Cycle' : '初手制約とライフ資源の管理',
           isEn() ? `
-            <p>In official rules, before the game begins, both players consume <strong>"Life 4 (1 Dir)"</strong> from their first cycle to place initial sources:</p>
-            <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800">
-              <li>1st Player: Coordinate (2, 2) facing East (Life 4)</li>
-              <li>2nd Player: Coordinate (3, 3) facing West (Life 4)</li>
+            <p>In official matches, the initial light sources at <strong>(2, 2) East</strong> and <strong>(3, 3) West</strong> are placed for free, and both players start with all <strong>Unused Lives [1, 2, 3, 4]</strong> (Cycle Turn 1/4).</p>
+            <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
+              <li><strong>First-Move Constraint:</strong> On each player's very first turn, you must place a light source with <strong>2 or more directions (Life 1, 2, or 3)</strong> (Life 4 and Voluntary Skip cannot be used on turn 1).</li>
+              <li><strong>Life Cycle:</strong> Once you complete 4 of your turns and consume all 4 Life resources, the cycle resets and [1, 2, 3, 4] become available again.</li>
             </ul>
-            <p>Therefore, the first cycle begins with <strong>Unused Lives "1, 2, 3" available</strong>. Once all 3 are used, the cycle resets and all "1, 2, 3, 4" become available again.</p>
           ` : `
-            <p>公式ルールでは、ゲーム開始前に両プレイヤーが最初のサイクルの<strong>「ライフ4（1方向）」</strong>を消費して初期配置を行います。</p>
-            <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800">
-              <li>先手：座標 (2, 2) に 東向き（ライフ4）</li>
-              <li>後手：座標 (3, 3) に 西向き（ライフ4）</li>
+            <p>公式戦では、初期配置の<strong>先手 (2, 2) 東・後手 (3, 3) 西</strong>は無料で置かれたものとして扱い、両プレイヤーとも<strong>未使用ライフ [1, 2, 3, 4] がすべて揃った状態（サイクル 1/4手目）</strong>から開始します。</p>
+            <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
+              <li><strong>初手の特別制約：</strong>各プレイヤーの最初の手番（初手）では、<strong>必ず2方向以上（ライフ1, 2, 3）の光源</strong>を配置しなければなりません（初手ではライフ4および自発的スキップは使用不可）。</li>
+              <li><strong>ライフのサイクル：</strong>自分の手番を4回終えて1〜4のライフを使い切ると、サイクルがリセットされ再び [1, 2, 3, 4] が使用可能になります。</li>
             </ul>
-            <p>そのため、最初のサイクルは<strong>未使用ライフ「1, 2, 3」の3つが未使用の状態</strong>からスタートし、3手使い切ると次のサイクルから「1, 2, 3, 4」すべてがリセットされて使えるようになります。</p>
           `
         );
       } else if (stepNum === 5) {
         gameState.board = createInitialStandardBoard();
         gameState.eval = calculateRaysAndOwnership(gameState.board);
-        gameState.players.A.unusedLives = [1, 2, 3];
-        gameState.players.A.cycleTurn = 1;
+        gameState.players.A.unusedLives = [1, 2, 3, 4];
+        gameState.players.A.cycleTurn = 0;
+        gameState.players.A.firstMoveDone = true;
         gameState.tutorialRequirement = { type: 'skip' };
         selectedLife = null;
         setGuideBanner(
@@ -2406,46 +2545,48 @@
           isEn() ? `
             <p>There are two ways a turn can proceed without placing a light source: <strong>"Skip"</strong> and <strong>"Forced Pass"</strong>.</p>
             <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2 text-[11px]">
-              <div><b class="text-cyan-300">■ Voluntary Skip (Once per game):</b><br>Chosen voluntarily when empty cells exist. Consumes 1 Unused Life and uses up your Skip right.</div>
-              <div><b class="text-amber-300">■ Forced Pass:</b><br>Triggered automatically when no empty cells exist. Consumes 1 Unused Life without using your Skip right.</div>
+              <div><b class="text-cyan-300">■ Voluntary Skip (Once per game, from your 2nd turn onwards):</b><br>Chosen voluntarily when legal placements exist. Consumes 1 Unused Life and uses up your Skip right.</div>
+              <div><b class="text-amber-300">■ Forced Pass:</b><br>Triggered automatically when no legal placement exists. Consumes 1 Unused Life without using your Skip right.</div>
             </div>
           ` : `
             <p>光源を配置しない手番の進め方には<strong>「スキップ」</strong>と<strong>「強制パス」</strong>の2種類があります。</p>
             <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2 text-[11px]">
-              <div><b class="text-cyan-300">■ 自発的スキップ（ゲーム中1回のみ）：</b><br>配置できるマスがある状態で任意に選択。未使用ライフを1つ消費し、スキップ権も消費します。</div>
-              <div><b class="text-amber-300">■ 強制パス：</b><br>空きマスが1つもない時に強制発生。未使用ライフを1つ消費しますが、スキップ権は消費しません。</div>
+              <div><b class="text-cyan-300">■ 自発的スキップ（ゲーム中1回のみ・2手目以降）：</b><br>合法な配置がある状態で任意に選択。未使用ライフを1つ消費し、スキップ権も消費します（初手では選択できません）。</div>
+              <div><b class="text-amber-300">■ 強制パス：</b><br>合法な配置が1つもない時に強制発生。未使用ライフを1つ消費しますが、スキップ権は消費しません。</div>
             </div>
           `
         );
       } else if (stepNum === 6) {
         gameState.board = createInitialStandardBoard();
         gameState.eval = calculateRaysAndOwnership(gameState.board);
-        gameState.players.A.unusedLives = [1, 2, 3];
-        gameState.players.A.cycleTurn = 1;
-        gameState.players.B.unusedLives = [1, 2, 3];
-        gameState.players.B.cycleTurn = 1;
+        gameState.players.A.unusedLives = [1, 2, 3, 4];
+        gameState.players.A.cycleTurn = 0;
+        gameState.players.A.firstMoveDone = false;
+        gameState.players.B.unusedLives = [1, 2, 3, 4];
+        gameState.players.B.cycleTurn = 0;
+        gameState.players.B.firstMoveDone = false;
         gameState.tutorialRequirement = null;
         selectedLife = 3;
         setGuideBanner(
           isEn() ? 'STEP 6: Practice Match (6×6 Board)' : 'STEP 6：実戦形式の演習（6×6盤面）',
           isEn()
-            ? 'Start from initial setup (2,2) E & (3,3) W with Unused Lives [1,2,3]! Play until the end of the match.'
-            : '初期配置 (2,2) 東・(3,3) 西、未使用ライフ [1,2,3] からスタート！最後まで対局しましょう。'
+            ? 'Start from free initial setup (2,2) E & (3,3) W with Unused Lives [1,2,3,4]! Place 2+ directions on your first move.'
+            : '初期配置 (2,2) 東・(3,3) 西、未使用ライフ [1,2,3,4] からスタート！初手は2方向以上（ライフ1,2,3）を配置しましょう。'
         );
         showTutorialDialog(
           'STEP 6 / 6',
           isEn() ? 'Practice Match' : '実戦形式の演習',
           isEn() ? `
-            <p>This is the final step! Play a full match against the CPU starting from the official initial setup (1st at (2,2) E, 2nd at (3,3) W) and Unused Lives [1, 2, 3].</p>
+            <p>This is the final step! Play a full match against the CPU starting from the free initial setup (1st at (2,2) E, 2nd at (3,3) W) and Unused Lives [1, 2, 3, 4].</p>
             <ul class="list-disc list-inside space-y-1 text-slate-300 bg-slate-950 p-3 rounded-2xl border border-slate-800">
-              <li>Select "Unused Life" -> Tap an empty cell -> Confirm direction(s)</li>
+              <li>On your very first move, place 2+ directions (Life 1, 2, or 3)</li>
               <li>Overlap rays to expand territory and destroy opponent sources</li>
               <li>If territory cells are tied, the player with more remaining sources wins</li>
             </ul>
           ` : `
-            <p>いよいよ最終ステップです！公式初期配置（先手 (2,2) 東・後手 (3,3) 西）と未使用ライフ [1, 2, 3] の状態からCPUと対局しましょう。</p>
+            <p>いよいよ最終ステップです！無料の初期配置（先手 (2,2) 東・後手 (3,3) 西）と未使用ライフ [1, 2, 3, 4] の状態からCPUと対局しましょう。</p>
             <ul class="list-disc list-inside space-y-1 text-slate-300 bg-slate-950 p-3 rounded-2xl border border-slate-800">
-              <li>左下の「未使用ライフ」を選ぶ → 空きマスをタップ → 方向を決定</li>
+              <li>初手は特別制約に従い、2方向以上（ライフ1, 2, 3）の光源を配置する</li>
               <li>光線を重ねて所有マスを増やし、相手の光源を破壊する</li>
               <li>同点時は残存光源数が多い方が勝利となります</li>
             </ul>
@@ -2495,8 +2636,10 @@
           );
         }
       } else if (step === 2) {
+        const sessionAtTut = gameState.sessionId;
         isAnimating = true;
-        setTimeout(() => {
+        tutorialTimer = setTimeout(() => {
+          if (!gameState || gameState.sessionId !== sessionAtTut || activeSessionId !== sessionAtTut) return;
           gameState.board[3][4] = { owner: 'B', dirs: ['N', 'W'], life: 3, justPlaced: true };
           gameState.eval = calculateRaysAndOwnership(gameState.board);
           isAnimating = false;
@@ -2532,10 +2675,10 @@
           isEn() ? 'Successfully Destroyed the Light Source!' : '光源の破壊に成功しました！',
           isEn() ? `
             <p>3 of 2nd Player's rays reached (2, 2), satisfying <strong>Opponent Rays (3) − Owner Rays (0) ≧ Life (3)</strong> and destroying 1st Player's light source!</p>
-            <p class="text-emerald-300 font-bold">Next: "STEP 4: Initial Setup & Life Cycle".</p>
+            <p class="text-emerald-300 font-bold">Next: "STEP 4: First-Move Rule & Life Cycle".</p>
           ` : `
             <p>(2, 2) のマスに後手の光線が3本到達し、<strong>相手の光線(3) − 自身の光線(0) ≧ ライフ(3)</strong> を満たしたため、先手の光源が破壊されて消滅しました！</p>
-            <p class="text-emerald-300 font-bold">次は「STEP 4：初期配置とライフ資源の管理」へ進みます。</p>
+            <p class="text-emerald-300 font-bold">次は「STEP 4：初手制約とライフ資源の管理」へ進みます。</p>
           `,
           isEn() ? 'Proceed to STEP 4' : 'STEP 4 へ進む',
           () => initTutorialStep(4)
@@ -2545,14 +2688,15 @@
           gameState.tutorialSubstep = 2;
           gameState.players.A.unusedLives = [1];
           gameState.players.A.cycleTurn = 3;
+          gameState.players.A.firstMoveDone = true;
           gameState.activePlayer = 'A';
           gameState.tutorialRequirement = { type: 'place', life: 1 };
           selectedLife = 1;
           setGuideBanner(
-            isEn() ? 'STEP 4-2: Use the Last Life "1" in Cycle' : 'STEP 4-2：サイクル最後のライフ「1」を使おう',
+            isEn() ? 'STEP 4-2: Use the 4th Life in Cycle to Reset' : 'STEP 4-2：サイクル4手目のライフ「1」を使おう',
             isEn()
-              ? 'Now place the final Unused Life "1 (4 Dirs)" on any empty cell to see the cycle reset!'
-              : '次はサイクル最後の未使用ライフ「1（4方向）」を任意の空きマスに配置して、サイクルリセットを確認しましょう！'
+              ? 'After your first move, Life 4 also becomes usable. Now place the last remaining Life "1 (4 Dirs)" on any empty cell to see the 4-turn cycle reset!'
+              : '初手を終えるとライフ4も使用可能になります。ここではサイクル4手目の残りライフ「1（4方向）」を空きマスに配置して、サイクルリセットを確認しましょう！'
           );
           renderAll();
         } else {
@@ -2560,10 +2704,10 @@
             isEn() ? 'STEP 4 Complete' : 'STEP 4 完了',
             isEn() ? 'Life Cycle Reset Confirmed!' : 'サイクルがリセットされました！',
             isEn() ? `
-              <p>By using up the remaining Life in the cycle, your <strong>Unused Lives have reset to [1, 2, 3, 4]</strong>!</p>
+              <p>By completing the 4th turn of your cycle, your <strong>Unused Lives have reset to [1, 2, 3, 4]</strong>!</p>
               <p class="text-emerald-300 font-bold">Next: "STEP 5: Voluntary Skip & Forced Pass".</p>
             ` : `
-              <p>最初のサイクルの残りライフを使い切ったことで、<strong>未使用ライフが [1, 2, 3, 4] すべて使用可能</strong>にリセットされました！</p>
+              <p>サイクルの4手目を終えたことで、<strong>未使用ライフが再び [1, 2, 3, 4] すべて使用可能</strong>にリセットされました！</p>
               <p class="text-emerald-300 font-bold">次は「STEP 5：スキップと強制パス」へ進みます。</p>
             `,
             isEn() ? 'Proceed to STEP 5' : 'STEP 5 へ進む',
@@ -2781,7 +2925,7 @@
       const oppIsA = oppKey === 'A';
       document.getElementById('opp-dot').className = `w-2.5 h-2.5 rounded-full shrink-0 ${oppIsA ? 'bg-cyan-400' : 'bg-rose-500'}`;
       document.getElementById('opp-role-label').textContent = roleName(oppKey);
-      document.getElementById('opp-type-tag').textContent = oppObj.isHuman ? (isEn() ? 'YOU' : 'あなた') : 'CPU';
+      document.getElementById('opp-type-tag').textContent = oppObj.isHuman ? (isEn() ? 'YOU' : 'あなた') : cpuLabel();
       document.getElementById('opp-sources').textContent = oppIsA ? evalToUse.sourcesA : evalToUse.sourcesB;
       document.getElementById('opp-skip-status').textContent = oppObj.skipAvailable
         ? (isEn() ? '1 Left' : '残1')
@@ -2839,7 +2983,8 @@
       const livesGrid = document.getElementById('self-lives-grid');
       livesGrid.innerHTML = [1, 2, 3, 4].map(life => {
         const inUnused = selfObj.unusedLives.includes(life);
-        const hasValidCell = inUnused && hasAnyLegalPlacementForLife(gameState, humanKey, life);
+        const blockedByFirstMove = inUnused && !selfObj.firstMoveDone && life === 4;
+        const hasValidCell = inUnused && !blockedByFirstMove && hasAnyLegalPlacementForLife(gameState, humanKey, life);
         const isSelected = isHumanTurn && selectedLife === life && hasValidCell;
         const dirCount = 5 - life;
 
@@ -2848,7 +2993,7 @@
         let btnClass = 'h-[42px] rounded-xl border flex flex-col items-center justify-center transition-all ';
         if (!inUnused) {
           btnClass += 'bg-slate-950 border-slate-800/70 text-slate-600 opacity-40 cursor-not-allowed';
-        } else if (!hasValidCell) {
+        } else if (blockedByFirstMove || !hasValidCell) {
           btnClass += 'bg-slate-950 border-slate-800 text-slate-500 opacity-50 cursor-not-allowed';
         } else if (isSelected) {
           btnClass += selfIsA
@@ -2864,9 +3009,14 @@
           btnClass += ' ring-2 ring-emerald-400';
         }
 
-        const subText = inUnused
-          ? (isEn() ? `${dirCount} Dir${dirCount > 1 ? 's' : ''}` : `${dirCount}方向`)
-          : (isEn() ? 'Used' : '使用済');
+        let subText;
+        if (!inUnused) {
+          subText = isEn() ? 'Used' : '使用済';
+        } else if (blockedByFirstMove) {
+          subText = isEn() ? 'Turn 2+' : '初手不可';
+        } else {
+          subText = isEn() ? `${dirCount} Dir${dirCount > 1 ? 's' : ''}` : `${dirCount}方向`;
+        }
 
         return `
           <button type="button" onclick="selectUnusedLife(${life})" class="${btnClass}">
@@ -2880,11 +3030,15 @@
       const skipSub = document.getElementById('self-skip-sub');
       const passBtn = document.getElementById('btn-forced-pass');
 
-      const canSkip = isHumanTurn && hasLegal && selfObj.skipAvailable;
+      const canSkip = isHumanTurn && hasLegal && selfObj.skipAvailable && selfObj.firstMoveDone;
       skipBtn.disabled = !canSkip;
-      skipSub.textContent = !selfObj.skipAvailable
-        ? (isEn() ? 'Used' : '使用済')
-        : (isEn() ? '1 Left' : '残り1回');
+      if (!selfObj.skipAvailable) {
+        skipSub.textContent = isEn() ? 'Used' : '使用済';
+      } else if (!selfObj.firstMoveDone) {
+        skipSub.textContent = isEn() ? 'Turn 2+' : '初手不可';
+      } else {
+        skipSub.textContent = isEn() ? '1 Left' : '残り1回';
+      }
 
       if (gameState.isTutorial && gameState.tutorialRequirement?.type === 'skip') {
         skipBtn.classList.add('ring-2', 'ring-emerald-400', 'animate-pulse');
@@ -3077,10 +3231,12 @@
             isA
               ? 'border-cyan-300 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-black'
               : 'border-rose-300 bg-rose-500 text-white shadow-md shadow-rose-500/30 font-black'
-          }`;
-          sub.textContent = neededDirs > 1
-            ? (isEn() ? `#${orderIdx + 1}` : `選択${orderIdx + 1}`)
-            : (isEn() ? 'Selected' : '選択中');
+          } ${neededDirs === 4 ? 'cursor-default' : ''}`;
+          sub.textContent = neededDirs === 4
+            ? (isEn() ? 'All Dirs' : '全方向')
+            : neededDirs > 1
+              ? (isEn() ? `#${orderIdx + 1}` : `選択${orderIdx + 1}`)
+              : (isEn() ? 'Selected' : '選択中');
         } else {
           btn.className = 'rounded-2xl border-2 border-slate-700 bg-slate-800 hover:border-slate-500 text-slate-200 flex flex-col items-center justify-center transition-all';
           sub.textContent = dKey === 'N' ? '▲' : dKey === 'S' ? '▼' : dKey === 'E' ? '▶' : '◀';
@@ -3134,8 +3290,8 @@
         consecutiveForcedPasses: 0,
         gameOver: false,
         players: {
-          A: { unusedLives: [1, 2, 3], cycleTurn: 1, skipAvailable: true },
-          B: { unusedLives: [1, 2, 3], cycleTurn: 1, skipAvailable: true }
+          A: { unusedLives: [1, 2, 3, 4], cycleTurn: 0, firstMoveDone: false, skipAvailable: true },
+          B: { unusedLives: [1, 2, 3, 4], cycleTurn: 0, firstMoveDone: false, skipAvailable: true }
         }
       };
 
