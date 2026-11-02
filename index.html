@@ -189,41 +189,40 @@
     
     <!-- Top Compact Header -->
     <header class="w-full max-w-[1100px] mx-auto px-2.5 pt-2 pb-1 shrink-0">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl px-3 py-1.5 flex items-center justify-between gap-1">
-        <div class="flex items-center gap-1.5">
-          <button type="button" id="btn-header-back" onclick="confirmReturnToTitle()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="タイトルへ戻る">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl px-2.5 py-1.5 flex items-center justify-between gap-1 whitespace-nowrap">
+        <div class="flex items-center gap-1 shrink-0">
+          <button type="button" id="btn-header-back" onclick="confirmReturnToTitle()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors shrink-0" title="タイトルへ戻る">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <span id="header-mode-title" class="font-black tracking-tight text-cyan-400 text-sm sm:text-base">KOSEN</span>
         </div>
 
         <!-- Turn & Active Player Badge -->
-        <div class="flex items-center gap-1.5">
-          <div id="turn-counter-box" class="bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 text-[11px] font-mono-num">
+        <div class="flex items-center gap-1.5 shrink-0">
+          <div id="turn-counter-box" class="bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-[11px] font-mono-num shrink-0">
             <span id="lbl-turn-prefix" class="text-slate-400 text-[10px] mr-0.5">手番</span>
             <span id="ui-turn-current" class="font-bold text-white">1</span>
             <span class="text-slate-600">/</span>
             <span id="ui-turn-max" class="text-slate-400">64</span>
           </div>
-          <div id="ui-active-turn-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-            先手の手番
+          <div id="ui-active-turn-badge" class="px-2 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shrink-0">
+            先手
           </div>
         </div>
 
         <!-- View Mode Toggle, Surrender & Rule Button -->
-        <div class="flex items-center gap-1.5">
-          <button type="button" id="btn-layout-toggle" onclick="toggleLayoutMode()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 border border-slate-700 transition-colors" title="PC表示とスマホ表示を切り替え">
-            🖥️ PC表示
+        <div class="flex items-center gap-1 shrink-0">
+          <button type="button" id="btn-layout-toggle" onclick="toggleLayoutMode()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 border border-slate-700 transition-colors shrink-0" title="PCとスマホを切り替え">
+            PC
           </button>
-          <button type="button" id="btn-tutorial-steps" onclick="openTutorialStepMenu()" class="hidden px-2 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold">
+          <button type="button" id="btn-tutorial-steps" onclick="openTutorialStepMenu()" class="hidden px-2 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold shrink-0">
             STEP
           </button>
-          <button type="button" id="btn-surrender" onclick="openSurrenderModal()" class="px-2.5 py-1 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-[11px] font-bold text-rose-300 border border-rose-500/40 transition-colors">
+          <button type="button" id="btn-surrender" onclick="openSurrenderModal()" class="px-2 py-1 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-[11px] font-bold text-rose-300 border border-rose-500/40 transition-colors shrink-0">
             サレンダー
           </button>
-          <button type="button" id="btn-header-rules" onclick="openRuleModal()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 border border-slate-700">
+          <button type="button" id="btn-header-rules" onclick="openRuleModal()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 border border-slate-700 shrink-0">
             ルール
           </button>
         </div>
@@ -790,16 +789,16 @@
       // Game screen header & static labels
       document.getElementById('btn-header-back').title = isEn() ? 'Back to Title' : 'タイトルへ戻る';
       document.getElementById('lbl-turn-prefix').textContent = isEn() ? 'Turn' : '手番';
-      document.getElementById('btn-layout-toggle').title = isEn() ? 'Switch PC / Mobile View' : 'PC表示とスマホ表示を切り替え';
+      document.getElementById('btn-layout-toggle').title = isEn() ? 'Switch PC / Mobile' : 'PCとスマホを切り替え';
       document.getElementById('btn-surrender').textContent = isEn() ? 'Surrender' : 'サレンダー';
       document.getElementById('btn-header-rules').textContent = isEn() ? 'Rules' : 'ルール';
 
       const toggleBtn = document.getElementById('btn-layout-toggle');
       if (toggleBtn) {
         if (currentLayoutMode === 'pc') {
-          toggleBtn.textContent = isEn() ? '📱 Mobile View' : '📱 スマホ表示';
+          toggleBtn.textContent = isEn() ? 'Mobile' : 'スマホ';
         } else {
-          toggleBtn.textContent = isEn() ? '🖥️ PC View' : '🖥️ PC表示';
+          toggleBtn.textContent = 'PC';
         }
       }
 
@@ -899,7 +898,7 @@
         sidePanelCol.appendChild(territoryBox);
         sidePanelCol.appendChild(selfBar);
 
-        if (toggleBtn) toggleBtn.textContent = isEn() ? '📱 Mobile View' : '📱 スマホ表示';
+        if (toggleBtn) toggleBtn.textContent = isEn() ? 'Mobile' : 'スマホ';
       } else {
         workspace.className = 'flex-1 min-h-0 w-full max-w-[480px] mx-auto px-2.5 pb-2 flex flex-col justify-between gap-1.5 overflow-hidden';
         mobileTopSlot.classList.remove('hidden');
@@ -911,7 +910,7 @@
         sidePanelCol.appendChild(territoryBox);
         sidePanelCol.appendChild(selfBar);
 
-        if (toggleBtn) toggleBtn.textContent = isEn() ? '🖥️ PC View' : '🖥️ PC表示';
+        if (toggleBtn) toggleBtn.textContent = 'PC';
       }
 
       updateBoardSquareSize();
@@ -1272,9 +1271,6 @@
       document.getElementById('floating-result-bar').classList.add('hidden');
       document.getElementById('screen-game').classList.remove('hidden');
 
-      document.getElementById('header-mode-title').textContent = isDemo
-        ? (isEn() ? 'KOSEN (Demo)' : 'KOSEN (デモ観戦)')
-        : 'KOSEN';
       document.getElementById('turn-counter-box').classList.remove('hidden');
       document.getElementById('btn-tutorial-steps').classList.add('hidden');
       // Hide guide banner completely in normal games!
@@ -2244,7 +2240,6 @@
       document.getElementById('floating-result-bar').classList.add('hidden');
       document.getElementById('screen-game').classList.remove('hidden');
 
-      document.getElementById('header-mode-title').textContent = isEn() ? 'Tutorial' : 'チュートリアル';
       document.getElementById('btn-tutorial-steps').classList.remove('hidden');
       document.getElementById('guide-banner').classList.remove('hidden');
       document.getElementById('guide-banner').classList.add('flex');
@@ -2749,14 +2744,14 @@
       }
       const turnBadge = document.getElementById('ui-active-turn-badge');
       if (gameState.isGameOver) {
-        turnBadge.textContent = isEn() ? 'Game Over' : '対局終了';
-        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        turnBadge.textContent = isEn() ? 'End' : '終了';
+        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0';
       } else if (activeKey === 'A') {
-        turnBadge.textContent = isEn() ? "1st Player's Turn" : '先手の手番';
-        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+        turnBadge.textContent = isEn() ? '1st' : '先手';
+        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shrink-0';
       } else {
-        turnBadge.textContent = isEn() ? "2nd Player's Turn" : '後手の手番';
-        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
+        turnBadge.textContent = isEn() ? '2nd' : '後手';
+        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 shrink-0';
       }
 
       // 2. Opponent Bar & Self Bar
