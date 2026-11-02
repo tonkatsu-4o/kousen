@@ -271,14 +271,14 @@
               <div></div>
               <button type="button" onclick="onTapPopupDirection('N')" id="popup-dir-N"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span id="popup-dir-txt-N" class="text-xs font-extrabold">北</span>
+                <span id="popup-dir-txt-N" class="text-xs font-extrabold">上</span>
                 <span id="popup-sub-N" class="text-[9px] opacity-75">▲</span>
               </button>
               <div></div>
 
               <button type="button" onclick="onTapPopupDirection('W')" id="popup-dir-W"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span id="popup-dir-txt-W" class="text-xs font-extrabold">西</span>
+                <span id="popup-dir-txt-W" class="text-xs font-extrabold">左</span>
                 <span id="popup-sub-W" class="text-[9px] opacity-75">◀</span>
               </button>
 
@@ -290,14 +290,14 @@
 
               <button type="button" onclick="onTapPopupDirection('E')" id="popup-dir-E"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span id="popup-dir-txt-E" class="text-xs font-extrabold">東</span>
+                <span id="popup-dir-txt-E" class="text-xs font-extrabold">右</span>
                 <span id="popup-sub-E" class="text-[9px] opacity-75">▶</span>
               </button>
 
               <div></div>
               <button type="button" onclick="onTapPopupDirection('S')" id="popup-dir-S"
                 class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
-                <span id="popup-dir-txt-S" class="text-xs font-extrabold">南</span>
+                <span id="popup-dir-txt-S" class="text-xs font-extrabold">下</span>
                 <span id="popup-sub-S" class="text-[9px] opacity-75">▼</span>
               </button>
               <div></div>
@@ -639,10 +639,10 @@
     let currentLang = 'ja'; // Starts in Japanese by default
 
     const DIRS = {
-      N: { dr: -1, dc: 0, label: '北', labelEn: 'N' },
-      S: { dr: 1,  dc: 0, label: '南', labelEn: 'S' },
-      E: { dr: 0,  dc: 1, label: '東', labelEn: 'E' },
-      W: { dr: 0,  dc: -1, label: '西', labelEn: 'W' }
+      N: { dr: -1, dc: 0, label: '上', labelEn: 'Up' },
+      S: { dr: 1,  dc: 0, label: '下', labelEn: 'Down' },
+      E: { dr: 0,  dc: 1, label: '右', labelEn: 'Right' },
+      W: { dr: 0,  dc: -1, label: '左', labelEn: 'Left' }
     };
     const DIR_KEYS = ['N', 'S', 'E', 'W'];
 
@@ -705,8 +705,8 @@
             <h4 class="font-bold text-cyan-400 mb-1">■ Initial Placement & First-Move Constraint</h4>
             <p>Before the game begins, the following two initial light sources are placed on the board for free (without consuming any Life cycle resources):</p>
             <ul class="list-disc list-inside mt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-              <li>1st Player: Coordinate (2, 2) facing East (Life 4)</li>
-              <li>2nd Player: Coordinate (3, 3) facing West (Life 4)</li>
+              <li>1st Player: Coordinate (2, 2) facing Right (Life 4)</li>
+              <li>2nd Player: Coordinate (3, 3) facing Left (Life 4)</li>
             </ul>
             <p class="mt-1">Both players start with all <strong>Unused Lives "1, 2, 3, 4"</strong> available. However, as an <strong>initial constraint on each player's very first turn</strong>, you must place a light source with <strong>2 or more directions (Life 1, 2, or 3)</strong> (Life 4 and Voluntary Skip cannot be used on your first turn).</p>
           </div>
@@ -742,8 +742,8 @@
           <h4 class="font-bold text-cyan-400 mb-1">■ 初期配置と初手の特別制約</h4>
           <p>対局開始前に、ライフ資源を消費せず「無料」で以下の2つの初期光源が配置された状態からスタートします。</p>
           <ul class="list-disc list-inside mt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-            <li>先手：座標 (2, 2) に 東向き（ライフ4）</li>
-            <li>後手：座標 (3, 3) に 西向き（ライフ4）</li>
+            <li>先手：座標 (2, 2) に 右向き（ライフ4）</li>
+            <li>後手：座標 (3, 3) に 左向き（ライフ4）</li>
           </ul>
           <p class="mt-1">両プレイヤーとも<strong>未使用ライフ「1, 2, 3, 4」がすべて揃った状態（サイクル1/4手目）</strong>から開始しますが、<strong>各プレイヤーの最初の手番（初手）に限り、必ず2方向以上（ライフ1, 2, 3）の光源を配置</strong>しなければなりません（初手ではライフ4の配置および自発的スキップは選択できません）。</p>
         </div>
@@ -1544,8 +1544,8 @@
 
     /**
      * Creates a 6x6 board with the official initial configuration:
-     * Player A at (2,2) facing East ('E', life 4)
-     * Player B at (3,3) facing West ('W', life 4)
+     * Player A at (2,2) facing Right ('E', life 4)
+     * Player B at (3,3) facing Left ('W', life 4)
      */
     function createInitialStandardBoard() {
       const board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
@@ -2541,8 +2541,8 @@
           'STEP 1/6',
           isEn() ? 'Ray Emission (1/2)' : '光線の照射 (1/2)',
           isEn()
-            ? '1. Check that "Life 4 (1 Dir)" is selected below → 2. Tap the green highlighted cell (2, 1) → 3. Select "E" (East) and place.'
-            : '①下の未使用ライフ「4 (1方向)」を選択 → ②緑枠のマス (2, 1) をタップ → ③ポップアップで「東」を選んで配置しましょう。'
+            ? '1. Check that "Life 4 (1 Dir)" is selected below → 2. Tap the green highlighted cell (2, 1) → 3. Select "Right" and place.'
+            : '①下の未使用ライフ「4 (1方向)」を選択 → ②緑枠のマス (2, 1) をタップ → ③ポップアップで「右」を選んで配置しましょう。'
         );
         showTutorialIntroModal(
           'STEP 1 / 6',
@@ -2557,7 +2557,7 @@
             </div>
             <ul class="list-disc list-inside text-slate-300 space-y-1">
               <li>Rays travel in a straight line to the edge of the board and pass right through other light sources.</li>
-              <li>First, let's place a light source facing <b>East</b> on cell <b>(2, 1)</b>.</li>
+              <li>First, let's place a light source facing <b>Right</b> on cell <b>(2, 1)</b>.</li>
             </ul>
           ` : `
             <p>光源の配置方法と、光線の進行方向を6×6盤面で学びます。</p>
@@ -2569,7 +2569,7 @@
             </div>
             <ul class="list-disc list-inside text-slate-300 space-y-1">
               <li>光線は盤面の端まで直進し、途中の他の光源を通過します。</li>
-              <li>まずは指定マス <b>(2, 1)</b> に <b>東方向のみ（ライフ4）</b> の光源を配置してみましょう。</li>
+              <li>まずは指定マス <b>(2, 1)</b> に <b>右方向のみ（ライフ4）</b> の光源を配置してみましょう。</li>
             </ul>
           `
         );
@@ -2590,8 +2590,8 @@
           'STEP 2/6',
           isEn() ? 'Cell Ownership' : 'マスの所有権',
           isEn()
-            ? 'With Life 4 selected, tap cell (2, 1) and place a source facing "E" (East) to see how ray counts change cell ownership.'
-            : '未使用ライフ「4」を選択した状態でマス (2, 1) をタップし、「東」向きに配置して所有権の変化を確認しましょう。'
+            ? 'With Life 4 selected, tap cell (2, 1) and place a source facing "Right" to see how ray counts change cell ownership.'
+            : '未使用ライフ「4」を選択した状態でマス (2, 1) をタップし、「右」向きに配置して所有権の変化を確認しましょう。'
         );
         showTutorialIntroModal(
           'STEP 2 / 6',
@@ -2610,7 +2610,7 @@
               <tr><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-300 font-bold">2nd (Red)</td></tr>
               <tr><td class="border border-slate-700 p-1">0</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-400 font-bold">2nd (Strong Red)</td></tr>
             </table>
-            <p>Place an East-facing light source on <b>(2, 1)</b> to add a second ray along row 2!</p>
+            <p>Place a right-facing light source on <b>(2, 1)</b> to add a second ray along row 2!</p>
           ` : `
             <p>各マスに到達している先手・後手の光線の本数によってマスの所有権が決まります。</p>
             <table class="w-full text-center border-collapse border border-slate-700 text-[11px] my-2">
@@ -2625,7 +2625,7 @@
               <tr><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-300 font-bold">後手（赤）</td></tr>
               <tr><td class="border border-slate-700 p-1">0</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-400 font-bold">後手（濃い赤）</td></tr>
             </table>
-            <p>光線数の差が大きいほどマスの色が濃くなります。<b>(2, 1)</b> に東向きの光源を追加して光線を重ねてみましょう。</p>
+            <p>光線数の差が大きいほどマスの色が濃くなります。<b>(2, 1)</b> に右向きの光源を追加して光線を重ねてみましょう。</p>
           `
         );
       } else if (stepNum === 3) {
@@ -2649,8 +2649,8 @@
           'STEP 3/6',
           isEn() ? 'Destroying Light Sources' : '光源の破壊',
           isEn()
-            ? '1st Player\'s source at (2, 2) has Life 3 and is hit by 2 rays. Place a "N" (North) source at (5, 2) to hit it with a 3rd ray and destroy it!'
-            : '先手の光源 (2, 2) はライフ3で、現在あなたの光線が2本（差2）届いています。マス (5, 2) に「北」向きで配置し、3本目を当てて破壊しましょう！'
+            ? '1st Player\'s source at (2, 2) has Life 3 and is hit by 2 rays. Place a "Up" source at (5, 2) to hit it with a 3rd ray and destroy it!'
+            : '先手の光源 (2, 2) はライフ3で、現在あなたの光線が2本（差2）届いています。マス (5, 2) に「上」向きで配置し、3本目を当てて破壊しましょう！'
         );
         showTutorialIntroModal(
           'STEP 3 / 6',
@@ -2663,7 +2663,7 @@
             <ul class="list-disc list-inside space-y-1 text-slate-300">
               <li>The 1st Player's source at <b>(2, 2)</b> emits in 2 directions (E & W), so its <b>Life is 3</b>.</li>
               <li>Currently, 2 of your rays reach (2, 2) (difference = 2), which is 1 short of destruction.</li>
-              <li>Place a <b>North-facing</b> source at <b>(5, 2)</b> to send a 3rd ray into (2, 2) and destroy it!</li>
+              <li>Place a <b>Up-facing</b> source at <b>(5, 2)</b> to send a 3rd ray into (2, 2) and destroy it!</li>
             </ul>
           ` : `
             <p>光源は、その配置マスにおける相手の光線数と自分の光線数の差が、光源のライフ値以上になると破壊されます。</p>
@@ -2671,9 +2671,9 @@
               相手の光線数 − 自身の光線数 ≧ 光源のライフ値
             </div>
             <ul class="list-disc list-inside space-y-1 text-slate-300">
-              <li>現在 (2, 2) にある先手の光源は東西2方向なので<b>ライフ3</b>です。</li>
+              <li>現在 (2, 2) にある先手の光源は左右2方向なので<b>ライフ3</b>です。</li>
               <li>あなたの光線が2本到達していますが（差2）、まだ破壊条件（差3以上）を満たしていません。</li>
-              <li><b>(5, 2)</b> に<b>北向き</b>の光源を配置して3本目の光線を当て、先手の光源を破壊しましょう！</li>
+              <li><b>(5, 2)</b> に<b>上向き</b>の光源を配置して3本目の光線を当て、先手の光源を破壊しましょう！</li>
             </ul>
           `
         );
@@ -2695,13 +2695,13 @@
           isEn() ? 'Life Cycle Management (1/2)' : 'ライフ資源の管理 (1/2)',
           isEn()
             ? 'In a match, (2,2) E and (3,3) W are placed for free, and you start with Unused Lives 1, 2, 3, 4 (1st turn requires Life 1-3). Select Life 3 and place "N & S" at (1, 2).'
-            : '初期配置は無料で置かれ、未使用ライフ「1, 2, 3, 4」から開始します（初手はライフ1〜3のみ配置可）。ライフ3を選び、マス (1, 2) に「北・南」で配置しましょう。'
+            : '初期配置は無料で置かれ、未使用ライフ「1, 2, 3, 4」から開始します（初手はライフ1〜3のみ配置可）。ライフ3を選び、マス (1, 2) に「上・下」で配置しましょう。'
         );
         showTutorialIntroModal(
           'STEP 4 / 6',
           isEn() ? 'Life Cycle Management' : 'ライフ資源の管理',
           isEn() ? `
-            <p>In a standard match, the two initial sources at (2,2) East and (3,3) West are placed for free, and both players start with <b>Unused Lives 1, 2, 3, 4</b>.</p>
+            <p>In a standard match, the two initial sources at (2,2) Right and (3,3) Left are placed for free, and both players start with <b>Unused Lives 1, 2, 3, 4</b>.</p>
             <table class="w-full text-center border-collapse border border-slate-700 text-[11px] my-2">
               <tr class="bg-slate-800">
                 <th class="border border-slate-700 p-1">Unused Life</th>
@@ -2715,7 +2715,7 @@
             </table>
             <p>On your very first turn, you must place a source with 2+ directions (Life 1, 2, or 3). When you finish 4 of your turns, the cycle resets and all Lives 1–4 become available again.</p>
           ` : `
-            <p>実戦ではゲーム開始前に (2,2) 東向き・(3,3) 西向きの初期光源が<b>無料</b>で配置され、両者とも<b>未使用ライフ「1, 2, 3, 4」</b>が揃った状態（サイクル1/4手目）からスタートします。</p>
+            <p>実戦ではゲーム開始前に (2,2) 右向き・(3,3) 左向きの初期光源が<b>無料</b>で配置され、両者とも<b>未使用ライフ「1, 2, 3, 4」</b>が揃った状態（サイクル1/4手目）からスタートします。</p>
             <table class="w-full text-center border-collapse border border-slate-700 text-[11px] my-2">
               <tr class="bg-slate-800">
                 <th class="border border-slate-700 p-1">未使用ライフ</th>
@@ -2799,14 +2799,14 @@
           isEn() ? `
             <p>Combine all the rules you've learned in a 16-turn practice match against the CPU!</p>
             <ul class="list-disc list-inside space-y-1 text-slate-300">
-              <li>Initial sources at (2,2) East and (3,3) West are placed for free; you start with Unused Lives 1, 2, 3, 4 (1st turn requires Life 1–3).</li>
+              <li>Initial sources at (2,2) Right and (3,3) Left are placed for free; you start with Unused Lives 1, 2, 3, 4 (1st turn requires Life 1–3).</li>
               <li>Expand your territory cells while watching ray counts and protecting or destroying light sources.</li>
               <li>Complete the match to finish the tutorial!</li>
             </ul>
           ` : `
             <p>これまでに学習したルールを組み合わせ、初期配置つきの6×6盤面でCPUと16手制限の演習対局を行ないます。</p>
             <ul class="list-disc list-inside space-y-1 text-slate-300">
-              <li>初期配置 (2,2)東・(3,3)西 は無料で置かれており、未使用ライフ1〜4が揃った状態（初手はライフ1〜3のみ配置可）から開始します。</li>
+              <li>初期配置 (2,2)右・(3,3)左 は無料で置かれており、未使用ライフ1〜4が揃った状態（初手はライフ1〜3のみ配置可）から開始します。</li>
               <li>光線数を確認しながら自分の所有マスを増やし、相手の光源の破壊やスキップも活用してみましょう。</li>
               <li>最後まで対局を完了するとチュートリアル修了です！</li>
             </ul>
@@ -2842,8 +2842,8 @@
             'STEP 1/6',
             isEn() ? 'Ray Emission (2/2)' : '光線の照射 (2/2)',
             isEn()
-              ? 'Rays extended East! Next, with "Life 3 (2 Dirs)" selected, tap cell (3, 4) and select "N" and "S".'
-              : '東方向に光線が伸びました！次は未使用ライフ「3 (2方向)」で緑枠のマス (3, 4) をタップし、「北」と「南」の2方向を選んで配置しましょう。'
+              ? 'Rays extended Right! Next, with "Life 3 (2 Dirs)" selected, tap cell (3, 4) and select "Up" and "Down".'
+              : '右方向に光線が伸びました！次は未使用ライフ「3 (2方向)」で緑枠のマス (3, 4) をタップし、「上」と「下」の2方向を選んで配置しましょう。'
           );
           renderAll();
         } else {
