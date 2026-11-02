@@ -41,10 +41,10 @@
       height: 100%;
       min-width: 0;
       min-height: 0;
-      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
+      transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
     }
     .board-cell:active {
-      transform: scale(0.97);
+      filter: brightness(1.25);
     }
     .board-cell.selected-cell {
       outline: 2.5px solid #facc15;
@@ -58,9 +58,10 @@
       z-index: 15;
     }
 
+    /* セル本体は拡縮させない（セル内の文字が動かないように、光らせ方だけを変化させる） */
     @keyframes targetPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.03); }
+      0%, 100% { box-shadow: 0 0 8px rgba(52, 211, 153, 0.35); }
+      50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.8); }
     }
 
     @keyframes destroyPulse {
@@ -2606,7 +2607,8 @@
               <tr><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1">0</td><td class="border border-slate-700 p-1 text-cyan-400 font-bold">1st (Strong Blue)</td></tr>
               <tr><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1 text-cyan-300 font-bold">1st (Blue)</td></tr>
               <tr><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-slate-400">Neutral</td></tr>
-              <tr><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-400 font-bold">2nd (Red)</td></tr>
+              <tr><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-300 font-bold">2nd (Red)</td></tr>
+              <tr><td class="border border-slate-700 p-1">0</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-400 font-bold">2nd (Strong Red)</td></tr>
             </table>
             <p>Place an East-facing light source on <b>(2, 1)</b> to add a second ray along row 2!</p>
           ` : `
@@ -2620,7 +2622,8 @@
               <tr><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1">0</td><td class="border border-slate-700 p-1 text-cyan-400 font-bold">先手（濃い青）</td></tr>
               <tr><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1 text-cyan-300 font-bold">先手（青）</td></tr>
               <tr><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-slate-400">中立</td></tr>
-              <tr><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-400 font-bold">後手（赤）</td></tr>
+              <tr><td class="border border-slate-700 p-1">1</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-300 font-bold">後手（赤）</td></tr>
+              <tr><td class="border border-slate-700 p-1">0</td><td class="border border-slate-700 p-1">2</td><td class="border border-slate-700 p-1 text-rose-400 font-bold">後手（濃い赤）</td></tr>
             </table>
             <p>光線数の差が大きいほどマスの色が濃くなります。<b>(2, 1)</b> に東向きの光源を追加して光線を重ねてみましょう。</p>
           `
@@ -3058,7 +3061,7 @@
         for (let c = 0; c < BOARD_SIZE; c++) {
           const cell = document.createElement('div');
           cell.id = `cell-${r}-${c}`;
-          cell.className = 'board-cell rounded-xl border flex flex-col justify-between p-1 cursor-pointer select-none overflow-hidden';
+          cell.className = 'board-cell rounded-xl border cursor-pointer select-none overflow-hidden';
           cell.onclick = () => onTapBoardCell(r, c);
           grid.appendChild(cell);
         }
@@ -3106,7 +3109,7 @@
       }
     }
 
-    function createSourcePieceHTML(r, c, src, isGhost, willDie, isVulnerable) {
+    function createSourcePieceHTML(r, c, src, isGhost, willDie) {
       const isA = src.owner === 'A';
       const baseBg = isA ? 'bg-cyan-400 text-slate-950 border-cyan-100' : 'bg-rose-500 text-white border-rose-200';
       const ghostClass = isGhost ? 'opacity-80 ring-2 ring-yellow-300' : 'piece-pop';
@@ -3130,7 +3133,6 @@
             <span class="font-mono-num text-[10px] sm:text-xs font-black leading-none">${src.life}</span>
           </div>
           ${willDie ? `<span class="warn-badge absolute -top-1.5 -right-1.5 z-20 px-1 rounded bg-amber-400 text-slate-950 font-black text-[8px]">${isEn() ? 'BRK' : '破壊'}</span>` : ''}
-          ${!willDie && isVulnerable ? `<span class="absolute -bottom-1 -right-1 z-20 w-2 h-2 rounded-full bg-amber-400 border border-slate-950" title="${isEn() ? '1 ray away from destruction' : 'あと1本で破壊'}"></span>` : ''}
         </div>
       `;
     }
@@ -3143,6 +3145,9 @@
       const selfPlayer = gameState.players[humanRole];
       const oppPlayer = gameState.players[oppRole];
       const activeKey = gameState.activePlayer;
+
+      // チュートリアル中はサレンダーボタンを表示しない
+      document.getElementById('btn-surrender').classList.toggle('hidden', Boolean(gameState.isTutorial));
 
       // Live preview when a cell and at least 1 direction are chosen
       let simPreview = null;
@@ -3229,16 +3234,9 @@
           const src = gameState.board[r][c];
           const willDie = destroyedSet.has(`${r},${c}`);
 
-          let isVulnerable = false;
-          if (src && !willDie) {
-            const ownR = src.owner === 'A' ? rA : rB;
-            const oppR = src.owner === 'A' ? rB : rA;
-            if (src.life - (oppR - ownR) === 1) isVulnerable = true;
-          }
-
           let centerPieceHTML = '';
           if (src) {
-            centerPieceHTML = createSourcePieceHTML(r, c, src, false, willDie, isVulnerable);
+            centerPieceHTML = createSourcePieceHTML(r, c, src, false, willDie);
           } else if (isSelected && selectedLife) {
             const ghostWillDie = simPreview && destroyedSet.has(`${r},${c}`);
             centerPieceHTML = createSourcePieceHTML(
@@ -3256,15 +3254,16 @@
           else if (rB > rA) ownerLabel = `<span class="text-[8px] font-black text-rose-200 px-1 rounded bg-rose-950/80">+${diff}</span>`;
           else ownerLabel = `<span class="text-[8px] font-mono-num text-slate-500">(${r},${c})</span>`;
 
+          // 文字は上下端に絶対配置、光源は中央に絶対配置。
+          // 光源の有無・ゴースト表示に関わらず、セル内の文字位置は一切変わらない。
           cellEl.innerHTML = `
-            <div class="w-full flex items-center justify-between leading-none z-10">
+            <div class="absolute top-[3px] left-[3px] right-[3px] h-[10px] flex items-center justify-between leading-none z-10 pointer-events-none">
               ${ownerLabel}
-              ${(rA > 0 || rB > 0) ? `<span class="font-mono-num text-[8px] text-slate-200/90">${roleShortName('A')}${rA}:${roleShortName('B')}${rB}</span>` : ''}
             </div>
-            <div class="flex-1 flex items-center justify-center my-0.5">
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
               ${centerPieceHTML}
             </div>
-            <div class="w-full flex items-center justify-between text-[8px] font-mono-num leading-none z-10">
+            <div class="absolute bottom-[3px] left-[3px] right-[3px] h-[10px] flex items-center justify-between text-[8px] font-mono-num leading-none z-10 pointer-events-none">
               <span class="${rA > 0 ? 'text-cyan-300 font-bold' : 'text-slate-600'}">A:${rA}</span>
               <span class="${rB > 0 ? 'text-rose-300 font-bold' : 'text-slate-600'}">B:${rB}</span>
             </div>
