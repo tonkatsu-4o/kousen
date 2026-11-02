@@ -134,9 +134,27 @@
 
       <!-- Configuration Options (6x6 fixed, CPU Level only) -->
       <div class="space-y-6">
-        
-        <!-- CPU Level Selection -->
+
+        <!-- Game Mode Selection -->
         <div>
+          <label id="lbl-game-mode" class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
+            対戦モード
+          </label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" onclick="setSetupOption('gameMode', 'cpu')" id="opt-mode-cpu"
+              class="p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm">
+              CPU対戦
+            </button>
+            <button type="button" onclick="setSetupOption('gameMode', 'local')" id="opt-mode-local"
+              class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">
+              二人対戦
+            </button>
+          </div>
+          <p id="lbl-game-mode-desc" class="text-[10px] text-slate-500 mt-2">二人対戦では、1台の端末を交互に操作します。</p>
+        </div>
+
+        <!-- CPU Level Selection -->
+        <div id="cpu-level-settings">
           <label id="lbl-cpu-level" class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
             CPUレベル
           </label>
@@ -799,6 +817,10 @@
       }
 
       // Title screen static texts
+      document.getElementById('lbl-game-mode').textContent = isEn() ? 'GAME MODE' : '対戦モード';
+      document.getElementById('opt-mode-cpu').textContent = isEn() ? 'vs CPU' : 'CPU対戦';
+      document.getElementById('opt-mode-local').textContent = isEn() ? '2 Players' : '二人対戦';
+      document.getElementById('lbl-game-mode-desc').textContent = isEn() ? 'In 2-player mode, take turns using the same device.' : '二人対戦では、1台の端末を交互に操作します。';
       document.getElementById('lbl-cpu-level').textContent = isEn() ? 'CPU LEVEL' : 'CPUレベル';
       document.getElementById('opt-cpu-1').textContent = isEn() ? 'Easy' : '初級';
       document.getElementById('opt-cpu-2').textContent = isEn() ? 'Normal' : '中級';
@@ -878,6 +900,7 @@
       document.getElementById('btn-surrender-cancel').textContent = isEn() ? 'Cancel' : 'キャンセル';
       document.getElementById('btn-surrender-ok').textContent = isEn() ? 'Surrender' : 'サレンダーする';
 
+      updateSetupModeUI();
       applyLayoutMode(currentLayoutMode);
       if (gameState) {
         renderAll();
@@ -888,6 +911,7 @@
      * GLOBAL CONFIGURATION & STATE
      * -------------------------------------------------------------------------- */
     let setupConfig = {
+      gameMode: 'cpu', // 'cpu' or 'local' (two humans sharing one device)
       cpuLevel: 2 // 1: Easy (Weighted Random), 2: Normal (Heuristic), 3: Hard (Beam Search Minimax)
     };
 
@@ -1539,7 +1563,21 @@
             btn.className = 'p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm';
           }
         });
+      } else if (key === 'gameMode') {
+        updateSetupModeUI();
       }
+    }
+
+    function updateSetupModeUI() {
+      const isLocal = setupConfig.gameMode === 'local';
+      const cpuBtn = document.getElementById('opt-mode-cpu');
+      const localBtn = document.getElementById('opt-mode-local');
+      const cpuSettings = document.getElementById('cpu-level-settings');
+      const selectedClass = 'p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm';
+      const idleClass = 'p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm';
+      if (cpuBtn) cpuBtn.className = isLocal ? idleClass : selectedClass;
+      if (localBtn) localBtn.className = isLocal ? selectedClass : idleClass;
+      if (cpuSettings) cpuSettings.classList.toggle('hidden', isLocal);
     }
 
     /**
@@ -1572,13 +1610,15 @@
       clearPendingTimers();
       activeSessionId++;
       const sessionId = activeSessionId;
-      const humanRole = Math.random() < 0.5 ? 'A' : 'B';
+      const gameMode = setupConfig.gameMode || 'cpu';
+      const humanRole = gameMode === 'local' ? 'A' : (Math.random() < 0.5 ? 'A' : 'B');
       // 【デモプレイ復活手順③-B】上の `const humanRole = ...` をコメントアウトし、下の1行をアンコメントしてください
       // const humanRole = isDemo ? 'A' : (Math.random() < 0.5 ? 'A' : 'B');
       const initialBoard = createInitialStandardBoard();
 
       gameState = {
         sessionId: sessionId,
+        gameMode: gameMode,
         isTutorial: false,
         // 【デモプレイ復活手順③-C】下の `isDemo: isDemo,` をアンコメントしてください
         // isDemo: isDemo,
@@ -1599,7 +1639,7 @@
         eval: calculateRaysAndOwnership(initialBoard),
         players: {
           A: {
-            isHuman: humanRole === 'A',
+            isHuman: gameMode === 'local' || humanRole === 'A',
             // 【デモプレイ復活手順③-D】上の `isHuman` をコメントアウトし、下の1行をアンコメントしてください
             // isHuman: isDemo ? false : (humanRole === 'A'),
             unusedLives: [1, 2, 3, 4],
@@ -1610,7 +1650,7 @@
             surrenderCount: 0
           },
           B: {
-            isHuman: humanRole === 'B',
+            isHuman: gameMode === 'local' || humanRole === 'B',
             // 【デモプレイ復活手順③-E】上の `isHuman` をコメントアウトし、下の1行をアンコメントしてください
             // isHuman: isDemo ? false : (humanRole === 'B'),
             unusedLives: [1, 2, 3, 4],
@@ -1646,7 +1686,11 @@
       renderAll();
       requestAnimationFrame(updateBoardSquareSize);
 
-      showToast(isEn() ? `You are the ${roleName(humanRole)}` : `あなたは「${roleName(humanRole)}」です`);
+      if (gameMode === 'local') {
+        showToast(isEn() ? 'Pass the device to Player 1' : 'プレイヤー1（先手）の番です');
+      } else {
+        showToast(isEn() ? `You are the ${roleName(humanRole)}` : `あなたは「${roleName(humanRole)}」です`);
+      }
       /* 【デモプレイ復活手順③-F】上の showToast(...) をコメントアウトし、以下の if-else と startDemoGame() をアンコメントしてください
       if (isDemo) {
         showToast(isEn() ? `Demo Match Started: 1st ${cpuLabel()} vs 2nd ${cpuLabel()}` : `デモプレイ開始：先手${cpuLabel()} vs 後手${cpuLabel()}`);
@@ -2225,6 +2269,9 @@
 
     function openSurrenderModal() {
       if (!gameState || gameState.isGameOver || isAnimating) return;
+      document.getElementById('lbl-surrender-desc').textContent = gameState.gameMode === 'local'
+        ? (isEn() ? 'The player whose turn it is will immediately lose by surrendering.' : '現在の手番プレイヤーがサレンダーすると、そのプレイヤーの敗北となります。')
+        : (isEn() ? 'If you surrender, you immediately lose the match.' : 'サレンダーすると即座にあなたの敗北となります。');
       document.getElementById('modal-surrender').classList.remove('hidden');
     }
 
@@ -2246,8 +2293,10 @@
       gameState.endReason = isEn() ? 'Ended by Surrender' : 'サレンダーにより決着';
       gameState.eval = calculateRaysAndOwnership(gameState.board);
 
-      const humanRole = gameState.humanRole;
-      const oppRole = humanRole === 'A' ? 'B' : 'A';
+      const surrenderingRole = gameState.gameMode === 'local'
+        ? gameState.activePlayer
+        : gameState.humanRole;
+      const oppRole = surrenderingRole === 'A' ? 'B' : 'A';
       gameState.winner = oppRole;
       gameState.tieBreakReason = 'surrender';
 
@@ -2294,8 +2343,13 @@
 
       const youTag = isEn() ? 'You' : 'あなた';
       const cTag = cpuLabel();
-      document.getElementById('result-label-A').textContent = gameState.humanRole === 'A' ? `${roleName('A')} (${youTag})` : `${roleName('A')} (${cTag})`;
-      document.getElementById('result-label-B').textContent = gameState.humanRole === 'B' ? `${roleName('B')} (${youTag})` : `${roleName('B')} (${cTag})`;
+      if (gameState.gameMode === 'local') {
+        document.getElementById('result-label-A').textContent = isEn() ? '1st Player (Player 1)' : '先手（プレイヤー1）';
+        document.getElementById('result-label-B').textContent = isEn() ? '2nd Player (Player 2)' : '後手（プレイヤー2）';
+      } else {
+        document.getElementById('result-label-A').textContent = gameState.humanRole === 'A' ? `${roleName('A')} (${youTag})` : `${roleName('A')} (${cTag})`;
+        document.getElementById('result-label-B').textContent = gameState.humanRole === 'B' ? `${roleName('B')} (${youTag})` : `${roleName('B')} (${cTag})`;
+      }
       /* 【デモプレイ復活手順⑤-A】上の result-label-A / B の2行をコメントアウトし、以下のデモ対局対応ラベル表示をアンコメントしてください
       document.getElementById('result-label-A').textContent = gameState.isDemo
         ? `${roleName('A')} (${cTag})`
@@ -2307,9 +2361,9 @@
 
       const tieNote = document.getElementById('result-tie-note');
       if (gameState.tieBreakReason === 'surrender') {
-        tieNote.textContent = isEn()
-          ? '* You surrendered, resulting in an immediate loss.'
-          : '※サレンダーを選択したため、あなたの敗北となります。';
+        tieNote.textContent = gameState.gameMode === 'local'
+          ? (isEn() ? '* The active player surrendered.' : '※手番中のプレイヤーがサレンダーしました。')
+          : (isEn() ? '* You surrendered, resulting in an immediate loss.' : '※サレンダーを選択したため、あなたの敗北となります。');
         tieNote.classList.remove('hidden');
       } else if (gameState.tieBreakReason === 'cpu_surrender') {
         tieNote.textContent = isEn()
@@ -2348,7 +2402,17 @@
           : `デモ対局結果：${roleName(winner)}の勝利！`;
       } else
       */
-      if (humanWon) {
+      if (gameState.gameMode === 'local') {
+        glow.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 bg-cyan-500/20 border-2 border-cyan-400';
+        icon.textContent = '🏆';
+        title.textContent = isEn()
+          ? `${winner === 'A' ? 'PLAYER 1' : 'PLAYER 2'} WINS!`
+          : `${winner === 'A' ? 'プレイヤー1' : 'プレイヤー2'}の勝利！`;
+        title.className = 'text-3xl font-black tracking-tight text-cyan-300 text-glow-a';
+        sub.textContent = isEn()
+          ? `${roleName(winner)} wins the match.`
+          : `${roleName(winner)}が勝利しました。`;
+      } else if (humanWon) {
         glow.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 bg-cyan-500/20 border-2 border-cyan-400';
         icon.textContent = '🏆';
         title.textContent = 'YOU WIN!';
@@ -3140,7 +3204,8 @@
     function renderAll() {
       if (!gameState) return;
 
-      const humanRole = gameState.humanRole;
+      // In local two-player mode, the lower control dock follows the active player.
+      const humanRole = gameState.gameMode === 'local' ? gameState.activePlayer : gameState.humanRole;
       const oppRole = humanRole === 'A' ? 'B' : 'A';
       const selfPlayer = gameState.players[humanRole];
       const oppPlayer = gameState.players[oppRole];
@@ -3176,7 +3241,9 @@
       const isOppA = oppRole === 'A';
       document.getElementById('opp-dot').className = `w-2.5 h-2.5 rounded-full shrink-0 ${isOppA ? 'bg-cyan-400' : 'bg-rose-500'}`;
       document.getElementById('opp-role-label').textContent = roleName(oppRole);
-      document.getElementById('opp-type-tag').textContent = oppPlayer.isHuman ? 'YOU' : cpuLabel();
+      document.getElementById('opp-type-tag').textContent = gameState.gameMode === 'local'
+        ? (oppRole === 'A' ? 'P1' : 'P2')
+        : (oppPlayer.isHuman ? 'YOU' : cpuLabel());
       document.getElementById('opp-sources').textContent = isOppA ? gameState.eval.sourcesA : gameState.eval.sourcesB;
       document.getElementById('opp-skip-status').textContent = oppPlayer.skipAvailable
         ? (isEn() ? '1 left' : '残1')
@@ -3349,7 +3416,9 @@
       }`;
 
       document.getElementById('self-dot').className = `w-2.5 h-2.5 rounded-full ${isSelfA ? 'bg-cyan-400' : 'bg-rose-500'}`;
-      document.getElementById('self-role-label').textContent = `${roleName(humanRole)} (${isEn() ? 'You' : 'あなた'})`;
+      document.getElementById('self-role-label').textContent = gameState.gameMode === 'local'
+        ? (humanRole === 'A' ? (isEn() ? 'PLAYER 1' : 'プレイヤー1') : (isEn() ? 'PLAYER 2' : 'プレイヤー2'))
+        : `${roleName(humanRole)} (${isEn() ? 'You' : 'あなた'})`;
       /* 【デモプレイ復活手順⑦】上の self-role-label の1行をコメントアウトし、以下の3行をアンコメントしてください
       document.getElementById('self-role-label').textContent = gameState.isDemo
         ? `${roleName(humanRole)} (${cpuLabel()})`
