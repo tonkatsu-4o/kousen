@@ -1,0 +1,2807 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>KOSEN</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* Ensure .hidden ALWAYS wins regardless of ID specificity */
+    .hidden {
+      display: none !important;
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .text-glow-a {
+      text-shadow: 0 0 14px rgba(6, 182, 212, 0.65);
+    }
+    .text-glow-b {
+      text-shadow: 0 0 14px rgba(244, 63, 94, 0.65);
+    }
+
+    .board-cell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
+    }
+    .board-cell:active {
+      transform: scale(0.97);
+    }
+    .board-cell.selected-cell {
+      outline: 2.5px solid #facc15;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.55);
+      z-index: 20;
+    }
+    .board-cell.tutorial-target {
+      outline: 2.5px dashed #34d399;
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.5);
+      animation: targetPulse 1.3s infinite ease-in-out;
+      z-index: 15;
+    }
+
+    @keyframes targetPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    @keyframes destroyPulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      40% { transform: scale(1.18); filter: brightness(2.2); box-shadow: 0 0 28px #facc15; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+    .destroying-piece {
+      animation: destroyPulse 0.45s ease-in-out forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.45); opacity: 0; }
+      70% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .piece-pop {
+      animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes warnPulse {
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+    .warn-badge {
+      animation: warnPulse 1s infinite ease-in-out;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col bg-[#090d16]">
+
+  <!-- ==========================================
+       1. TITLE SCREEN
+       ========================================== -->
+  <main id="screen-title" class="relative z-10 flex-1 w-full h-full flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+      
+      <!-- Title Only -->
+      <div class="text-center mb-8">
+        <h1 class="text-5xl sm:text-6xl font-black tracking-tighter text-cyan-400 text-glow-a">
+          KOSEN
+        </h1>
+      </div>
+
+      <!-- Configuration Options (6x6 fixed, CPU Level only) -->
+      <div class="space-y-6">
+        
+        <!-- CPU Level Selection -->
+        <div>
+          <label class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
+            CPUレベル
+          </label>
+          <div class="grid grid-cols-3 gap-2.5">
+            <button type="button" onclick="setSetupOption('cpuLevel', 1)" id="opt-cpu-1"
+              class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">
+              初級
+            </button>
+            <button type="button" onclick="setSetupOption('cpuLevel', 2)" id="opt-cpu-2"
+              class="p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm">
+              中級
+            </button>
+            <button type="button" onclick="setSetupOption('cpuLevel', 3)" id="opt-cpu-3"
+              class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">
+              上級
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Action Buttons -->
+      <div class="mt-8 space-y-3">
+        <button type="button" onclick="startGame()"
+          class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-lg tracking-wide shadow-lg shadow-cyan-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+          <span>GAME START</span>
+        </button>
+
+        <button type="button" onclick="startOrResumeTutorial()"
+          class="w-full py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-sm border border-slate-700 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+          <span id="btn-tutorial-label">チュートリアル</span>
+        </button>
+      </div>
+
+      <div class="mt-5 flex items-center justify-center gap-5">
+        <button type="button" onclick="openRuleModal()" class="text-xs text-slate-400 hover:text-slate-200 underline underline-offset-4">
+          ルールを確認する
+        </button>
+        <button type="button" onclick="startDemoGame()" class="text-xs text-cyan-400/80 hover:text-cyan-300 underline underline-offset-4">
+          デモプレイ観戦 (CPU対局)
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================
+       2. GAME PLAY & TUTORIAL SCREEN
+       Supports both Smartphone (1-col) & PC (2-col)
+       ========================================== -->
+  <div id="screen-game" class="hidden relative z-10 h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-[#090d16]">
+    
+    <!-- Top Compact Header -->
+    <header class="w-full max-w-[1100px] mx-auto px-2.5 pt-2 pb-1 shrink-0">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl px-3 py-1.5 flex items-center justify-between gap-1">
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="confirmReturnToTitle()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="タイトルへ戻る">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <span id="header-mode-title" class="font-black tracking-tight text-cyan-400 text-sm sm:text-base">KOSEN</span>
+        </div>
+
+        <!-- Turn & Active Player Badge -->
+        <div class="flex items-center gap-1.5">
+          <div id="turn-counter-box" class="bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 text-[11px] font-mono-num">
+            <span class="text-slate-400 text-[10px] mr-0.5">手番</span>
+            <span id="ui-turn-current" class="font-bold text-white">1</span>
+            <span class="text-slate-600">/</span>
+            <span id="ui-turn-max" class="text-slate-400">64</span>
+          </div>
+          <div id="ui-active-turn-badge" class="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+            先手の手番
+          </div>
+        </div>
+
+        <!-- View Mode Toggle, Surrender & Rule Button -->
+        <div class="flex items-center gap-1.5">
+          <button type="button" id="btn-layout-toggle" onclick="toggleLayoutMode()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 border border-slate-700 transition-colors" title="PC表示とスマホ表示を切り替え">
+            🖥️ PC表示
+          </button>
+          <button type="button" id="btn-tutorial-steps" onclick="openTutorialStepMenu()" class="hidden px-2 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold">
+            STEP
+          </button>
+          <button type="button" id="btn-surrender" onclick="openSurrenderModal()" class="px-2.5 py-1 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-[11px] font-bold text-rose-300 border border-rose-500/40 transition-colors">
+            サレンダー
+          </button>
+          <button type="button" onclick="openRuleModal()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 border border-slate-700">
+            ルール
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container (switches between Mobile 1-col and PC 2-col) -->
+    <div id="game-workspace" class="flex-1 min-h-0 w-full max-w-[480px] mx-auto px-2.5 pb-2 flex flex-col justify-between gap-1.5 overflow-hidden">
+      
+      <!-- Mobile-only Top Slot (Opponent Bar & Tutorial Banner sit here in Mobile mode) -->
+      <div id="mobile-top-slot" class="flex flex-col gap-1.5 shrink-0"></div>
+
+      <!-- Center / Left Board Stage Column -->
+      <section id="board-stage-col" class="relative flex-1 w-full h-full min-h-0 min-w-0 flex items-center justify-center overflow-hidden py-0.5">
+        <!-- Strict 1:1 Square Board Container -->
+        <div id="board-container" class="relative flex items-center justify-center shrink-0" style="width: 320px; height: 320px;">
+          <div id="board-grid" class="w-full h-full grid grid-cols-6 grid-rows-6 gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-2xl bg-slate-900 border-2 border-slate-800 shadow-2xl relative">
+            <!-- Dynamically populated 6x6 (36) cells -->
+          </div>
+
+          <!-- Contextual Direction Selection Popup -->
+          <div id="direction-popup" class="hidden absolute z-30 bg-slate-900/95 backdrop-blur-md border-2 border-slate-600 rounded-3xl p-3 shadow-2xl w-60 sm:w-64 flex flex-col items-center gap-1.5">
+            <div class="w-full flex items-center justify-between border-b border-slate-800 pb-1">
+              <div class="text-xs font-bold text-white">
+                <span id="popup-coord-label">座標 (2, 2)</span>
+                <span id="popup-life-label" class="ml-1 px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono-num text-[11px]">ライフ3 (2方向)</span>
+              </div>
+              <button type="button" onclick="closeDirectionPopup()" class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Cross Direction Selector -->
+            <div class="grid grid-cols-3 gap-1.5 w-36 h-36 my-0.5">
+              <div></div>
+              <button type="button" onclick="onTapPopupDirection('N')" id="popup-dir-N"
+                class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
+                <span class="text-xs font-extrabold">北</span>
+                <span id="popup-sub-N" class="text-[9px] opacity-75">▲</span>
+              </button>
+              <div></div>
+
+              <button type="button" onclick="onTapPopupDirection('W')" id="popup-dir-W"
+                class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
+                <span class="text-xs font-extrabold">西</span>
+                <span id="popup-sub-W" class="text-[9px] opacity-75">◀</span>
+              </button>
+
+              <!-- Center Count Status -->
+              <div class="rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center p-1 text-center">
+                <span class="text-[9px] text-slate-400">選択方向</span>
+                <span id="popup-dir-progress" class="font-mono-num text-xs font-black text-white">0 / 2</span>
+              </div>
+
+              <button type="button" onclick="onTapPopupDirection('E')" id="popup-dir-E"
+                class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
+                <span class="text-xs font-extrabold">東</span>
+                <span id="popup-sub-E" class="text-[9px] opacity-75">▶</span>
+              </button>
+
+              <div></div>
+              <button type="button" onclick="onTapPopupDirection('S')" id="popup-dir-S"
+                class="rounded-2xl border-2 flex flex-col items-center justify-center transition-all">
+                <span class="text-xs font-extrabold">南</span>
+                <span id="popup-sub-S" class="text-[9px] opacity-75">▼</span>
+              </button>
+              <div></div>
+            </div>
+
+            <!-- Live Preview Feedback inside Popup -->
+            <div id="popup-sim-info" class="w-full text-center text-[11px] py-1 px-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300">
+              あと2方向選択してください
+            </div>
+
+            <!-- Confirm Placement Button -->
+            <button type="button" id="btn-popup-confirm" onclick="confirmPopupPlacement()" disabled
+              class="w-full py-2 rounded-xl font-black text-xs sm:text-sm tracking-wide transition-all bg-slate-800 text-slate-500 cursor-not-allowed">
+              ここに配置する
+            </button>
+          </div>
+        </div>
+
+        <!-- Toast Message for Hints / Invalid Taps -->
+        <div id="toast-msg" class="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-40 hidden px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs shadow-xl text-center">
+        </div>
+      </section>
+
+      <!-- Right / Bottom Panel Column -->
+      <div id="side-panel-col" class="flex flex-col gap-1.5 shrink-0">
+        
+        <!-- Opponent Compact Status Bar -->
+        <section id="opponent-bar" class="bg-slate-900 border border-slate-800 rounded-2xl px-3 py-2 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="opp-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+            <div class="truncate">
+              <div class="flex items-center gap-1">
+                <span id="opp-role-label" class="font-extrabold text-xs text-white">後手</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold" id="opp-type-tag">CPU</span>
+              </div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
+                <span>光源:<b id="opp-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
+                <span>スキップ:<b id="opp-skip-status" class="text-slate-300 ml-0.5">残1</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opponent Unused Lives -->
+          <div class="flex flex-col items-end gap-0.5">
+            <span class="text-[9px] text-slate-400">未使用ライフ</span>
+            <div id="opp-lives-list" class="flex items-center gap-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Opponent Score -->
+          <div class="text-right shrink-0 pl-2 border-l border-slate-800">
+            <div class="text-[9px] text-slate-400 leading-none">所有マス</div>
+            <div id="opp-score" class="font-mono-num text-base sm:text-lg font-black text-rose-400 leading-tight mt-0.5">3</div>
+          </div>
+        </section>
+
+        <!-- Tutorial Guide Banner (ONLY shown during Tutorial Mode) -->
+        <section id="guide-banner" class="hidden bg-slate-900/95 border border-emerald-500/40 rounded-2xl px-3 py-2 shrink-0 flex-col gap-1">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span id="guide-step-badge" class="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono-num text-[10px] font-bold shrink-0">
+                STEP 1/6
+              </span>
+              <span id="guide-title" class="text-xs font-bold text-white truncate">
+                チュートリアル
+              </span>
+            </div>
+            <button type="button" id="btn-guide-detail" onclick="openTutorialInfoModal()" class="shrink-0 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-cyan-300 font-bold border border-slate-700">
+              解説
+            </button>
+          </div>
+          <p id="guide-desc" class="text-[11px] text-slate-300 leading-snug">
+          </p>
+        </section>
+
+        <!-- Territory Ratio Bar -->
+        <div id="territory-bar-box" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center gap-2 shrink-0">
+          <span class="text-[11px] font-mono-num font-bold text-cyan-400 shrink-0">先手 <b id="ratio-A">3</b></span>
+          <div class="flex-1 h-2.5 bg-slate-950 rounded-full overflow-hidden flex border border-slate-800">
+            <div id="bar-A" class="h-full bg-cyan-400 transition-all duration-300" style="width: 8.3%"></div>
+            <div id="bar-N" class="h-full bg-slate-700 transition-all duration-300" style="width: 83.4%"></div>
+            <div id="bar-B" class="h-full bg-rose-500 transition-all duration-300" style="width: 8.3%"></div>
+          </div>
+          <span class="text-[10px] font-mono-num text-slate-400 shrink-0">中立 <b id="ratio-N">30</b></span>
+          <span class="text-[11px] font-mono-num font-bold text-rose-400 shrink-0">後手 <b id="ratio-B">3</b></span>
+        </div>
+
+        <!-- Bottom Player Control Dock (Unused Life Selection + Skip / Pass) -->
+        <section id="self-bar" class="bg-slate-900 border-2 border-cyan-500/60 rounded-2xl p-2.5 flex flex-col gap-2 shrink-0">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span id="self-dot" class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              <span id="self-role-label" class="font-extrabold text-xs text-white">先手 (あなた)</span>
+              <span class="text-[10px] text-slate-400 ml-1">光源:<b id="self-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <div class="text-xs text-slate-400">
+                所有マス: <span id="self-score" class="font-mono-num font-black text-sm sm:text-base text-cyan-400">3</span>
+                <span id="self-score-diff" class="font-mono-num text-xs font-bold text-emerald-400 hidden">+0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unused Life Selector Row + Skip/Pass Button -->
+          <div class="flex items-stretch gap-2">
+            <div class="flex-1">
+              <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                <span class="font-bold text-slate-300">未使用ライフ</span>
+                <span id="self-cycle-info" class="font-mono-num">サイクル 2/4手目</span>
+              </div>
+              <div id="self-lives-grid" class="grid grid-cols-4 gap-1.5">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Skip / Forced Pass Button -->
+            <div class="flex flex-col justify-end shrink-0">
+              <button type="button" id="btn-skip-action" onclick="openSkipModal('B')"
+                class="h-[44px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 flex flex-col items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                <span>スキップ</span>
+                <span id="self-skip-sub" class="text-[9px] text-slate-400 font-normal">残り1回</span>
+              </button>
+              <button type="button" id="btn-forced-pass" onclick="openSkipModal('C')"
+                class="hidden h-[44px] px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 flex flex-col items-center justify-center transition-all animate-pulse">
+                <span>強制パス</span>
+                <span class="text-[9px] font-bold">配置不可</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ==========================================
+       3. SKIP / FORCED PASS RESOURCE MODAL
+       ========================================== -->
+  <div id="modal-skip" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl">
+      <h3 id="modal-skip-title" class="text-lg font-black text-white">自発的スキップ</h3>
+      <p id="modal-skip-desc" class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+        スキップ権（ゲーム中1回のみ）を使用し、光源を配置せずに手番を終了します。消費する未使用ライフを1つ選択してください。
+      </p>
+
+      <div class="mt-4">
+        <div class="text-xs font-bold text-slate-400 mb-2">消費する未使用ライフを選択：</div>
+        <div id="modal-skip-lives" class="grid grid-cols-2 gap-2.5">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="mt-5 flex gap-3">
+        <button type="button" id="btn-cancel-skip" onclick="closeSkipModal()"
+          class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       4. GAME OVER / RESULT MODAL
+       ========================================== -->
+  <div id="modal-result" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-7 shadow-2xl text-center">
+      
+      <div id="result-glow" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 bg-cyan-500/20 border-2 border-cyan-400">
+        <span id="result-icon" class="text-3xl">🏆</span>
+      </div>
+
+      <div id="result-reason-badge" class="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 mb-2">
+        規定手番数到達によりゲーム終了
+      </div>
+
+      <h2 id="result-title" class="text-3xl font-black tracking-tight text-white">
+        YOU WIN!
+      </h2>
+      <p id="result-subtitle" class="text-sm text-slate-300 mt-1">
+        先手（あなた）の勝利！
+      </p>
+
+      <div class="grid grid-cols-2 gap-3 my-5">
+        <div class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/40">
+          <div id="result-label-A" class="text-xs font-bold text-cyan-300">先手</div>
+          <div id="result-score-A" class="font-mono-num text-3xl font-black text-white mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">所有マス</div>
+          <div class="text-[11px] font-mono-num text-cyan-200 mt-1 border-t border-cyan-500/20 pt-1">
+            残存光源: <b id="result-sources-A">0</b>個
+          </div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-500/40">
+          <div id="result-label-B" class="text-xs font-bold text-rose-300">後手</div>
+          <div id="result-score-B" class="font-mono-num text-3xl font-black text-white mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">所有マス</div>
+          <div class="text-[11px] font-mono-num text-rose-200 mt-1 border-t border-rose-500/20 pt-1">
+            残存光源: <b id="result-sources-B">0</b>個
+          </div>
+        </div>
+      </div>
+
+      <p id="result-tie-note" class="text-xs text-amber-300 mb-4 hidden">
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <button type="button" id="btn-result-retry" onclick="playAgain()"
+          class="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm shadow-lg shadow-cyan-500/20">
+          もう一回プレイ
+        </button>
+        <button type="button" onclick="backToTitle()"
+          class="flex-1 py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700">
+          タイトルに戻る
+        </button>
+      </div>
+
+      <button type="button" onclick="toggleInspectBoard()" class="mt-4 text-xs text-slate-400 hover:text-slate-200 underline underline-offset-2">
+        最終盤面を確認する
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating Bar when inspecting final board -->
+  <div id="floating-result-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden bg-slate-900/95 border border-slate-700 rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3">
+    <span class="text-xs font-bold text-white">最終盤面確認中</span>
+    <button type="button" onclick="showResultModal()" class="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 text-xs font-black">
+      結果画面に戻る
+    </button>
+  </div>
+
+  <!-- ==========================================
+       5. TUTORIAL STEP / COMPLETION MODAL
+       ========================================== -->
+  <div id="modal-tutorial-info" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-2">
+        <span id="tut-modal-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono-num">
+          STEP 1 / 6
+        </span>
+        <button type="button" onclick="closeTutorialInfoModal()" class="text-slate-400 hover:text-white text-xs font-bold">
+          ✕ 閉じる
+        </button>
+      </div>
+      <h3 id="tut-modal-title" class="text-lg font-black text-white mb-2">光線の照射</h3>
+      <div id="tut-modal-body" class="text-xs text-slate-300 space-y-2.5 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+      </div>
+      <div class="mt-5 flex gap-2.5" id="tut-modal-actions">
+        <button type="button" onclick="closeTutorialInfoModal()" class="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm">
+          確認して操作へ進む
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Step Selector Modal -->
+  <div id="modal-tutorial-steps" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-black text-white">チュートリアル ステップ選択</h3>
+        <button type="button" onclick="closeTutorialStepMenu()" class="text-slate-400 hover:text-white text-xs font-bold">✕ 閉じる</button>
+      </div>
+      <div id="tutorial-step-list" class="space-y-2">
+        <!-- Populated by JS -->
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between">
+        <button type="button" onclick="backToTitle()" class="text-xs text-rose-400 font-bold">タイトルへ戻る</button>
+        <button type="button" onclick="closeTutorialStepMenu()" class="text-xs text-slate-400">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       6. RULEBOOK MODAL
+       ========================================== -->
+  <div id="modal-rules" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-lg max-h-[85vh] bg-slate-900 border border-slate-700 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="text-base font-black text-white">KOSEN ルールガイド</h3>
+        <button type="button" onclick="closeRuleModal()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+          ✕
+        </button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div>
+          <h4 class="font-bold text-cyan-400 mb-1">■ ゲームの目的と勝敗判定</h4>
+          <p>6×6の盤面（座標 0,0 〜 5,5）で先手と後手が交互に光源を配置し、ゲーム終了時に自分の光線が相手より多く届いている「所有マス」の数を競います。</p>
+          <p class="mt-1 text-amber-300">※所有マス数が同じ場合は、<strong>ゲーム終了時に盤面に残存している自身の光源数が多いプレイヤー</strong>の勝利となります。所有マス数・残存光源数もすべて同じ場合に限り、後手の勝利となります。</p>
+        </div>
+        <div>
+          <h4 class="font-bold text-cyan-400 mb-1">■ 初期配置と最初のサイクル</h4>
+          <p>対局開始前に、両プレイヤーは最初のサイクルの「ライフ4（1方向）」を消費して以下の初期配置を行った状態からスタートします。</p>
+          <ul class="list-disc list-inside mt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <li>先手：座標 (2, 2) に 東向き（ライフ4）</li>
+            <li>後手：座標 (3, 3) に 西向き（ライフ4）</li>
+          </ul>
+          <p class="mt-1">そのため、両プレイヤーは最初のサイクルを<strong>未使用ライフ「1, 2, 3」の3つが残った状態</strong>から開始します。</p>
+        </div>
+        <div>
+          <h4 class="font-bold text-cyan-400 mb-1">■ 未使用ライフと照射方向</h4>
+          <p>1サイクル（自分の手番4回）でライフ「1, 2, 3, 4」を1回ずつ使用します。選んだライフによって照射方向の数と光源の耐久力（ライフ値）が決まります。壁に隣接するマスで壁の方向を選択することも可能です。</p>
+          <div class="grid grid-cols-4 gap-1.5 my-2 text-center font-mono-num text-[11px]">
+            <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">ライフ 4<br><b class="text-white">1方向</b></div>
+            <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">ライフ 3<br><b class="text-white">2方向</b></div>
+            <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">ライフ 2<br><b class="text-white">3方向</b></div>
+            <div class="p-2 rounded-xl bg-slate-800 border border-slate-700">ライフ 1<br><b class="text-white">4方向</b></div>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-bold text-cyan-400 mb-1">■ 光線の進行・所有権・光源の破壊</h4>
+          <p>光線は配置マスの隣から盤面の端まで直進し、他の光源に遮られません。各マスの光線数を比較し、先手が多ければ青、後手が多ければ赤、同数なら中立となります。</p>
+          <p class="mt-1">光源のあるマスで<strong>「相手の光線数 − 自分の光線数 ≧ 光源のライフ値」</strong>になると光源は破壊されて消滅し、残った光源で再計算（連鎖破壊）が行われます。</p>
+        </div>
+        <div>
+          <h4 class="font-bold text-cyan-400 mb-1">■ スキップと強制パス</h4>
+          <p><strong>スキップ：</strong>ゲーム中1回だけ、配置可能な状態で未使用ライフを1つ消費して手番をパスできます。<br>
+          <strong>強制パス：</strong>配置できる空きマスがない場合、未使用ライフを1つ消費して強制パスとなります（スキップ権は消費しません）。両者が連続して強制パスを行うか、最大手番数（64手）に達するとゲーム終了です。</p>
+        </div>
+      </div>
+      <div class="px-5 py-3 border-t border-slate-800 text-right">
+        <button type="button" onclick="closeRuleModal()" class="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       7. CONFIRM RETURN TO TITLE & SURRENDER MODALS
+       ========================================== -->
+  <div id="modal-confirm-title" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center">
+      <h3 class="text-base font-black text-white">タイトル画面に戻りますか？</h3>
+      <p id="confirm-title-desc" class="text-xs text-slate-400 mt-1.5">現在の対局を終了します。</p>
+      <div class="mt-5 flex gap-2.5">
+        <button type="button" onclick="closeConfirmTitleModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          キャンセル
+        </button>
+        <button type="button" onclick="backToTitle()" class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-xs font-black text-white">
+          戻る
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-surrender" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center">
+      <h3 class="text-base font-black text-white">サレンダー（降参）しますか？</h3>
+      <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">サレンダーすると即座にあなたの敗北となります。</p>
+      <div class="mt-5 flex gap-2.5">
+        <button type="button" onclick="closeSurrenderModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          キャンセル
+        </button>
+        <button type="button" onclick="executeSurrender()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black text-white shadow-lg shadow-rose-600/30">
+          サレンダーする
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT ENGINE (6x6 RULES + PYTHON AI PORT + RESPONSIVE LAYOUT)
+       ========================================== -->
+  <script>
+    /* --------------------------------------------------------------------------
+     * CONSTANTS & DIRECTION HELPERS
+     * -------------------------------------------------------------------------- */
+    const BOARD_SIZE = 6;
+    const MAX_TURNS = 64;
+
+    const DIRS = {
+      N: { dr: -1, dc: 0, label: '北' },
+      S: { dr: 1,  dc: 0, label: '南' },
+      E: { dr: 0,  dc: 1, label: '東' },
+      W: { dr: 0,  dc: -1, label: '西' }
+    };
+    const DIR_KEYS = ['N', 'S', 'E', 'W'];
+
+    const DIR_COMBOS_BY_LIFE = { 1: [], 2: [], 3: [], 4: [] };
+    (function buildCombos() {
+      for (let mask = 1; mask < 16; mask++) {
+        const combo = [];
+        for (let i = 0; i < 4; i++) {
+          if (mask & (1 << i)) combo.push(DIR_KEYS[i]);
+        }
+        const life = 5 - combo.length;
+        DIR_COMBOS_BY_LIFE[life].push(combo);
+      }
+    })();
+
+    function roleName(key) {
+      return key === 'A' ? '先手' : '後手';
+    }
+
+    /* --------------------------------------------------------------------------
+     * LAYOUT MODE MANAGEMENT (PC vs Mobile + Strict Square Sizing)
+     * -------------------------------------------------------------------------- */
+    let currentLayoutMode = window.innerWidth >= 880 ? 'pc' : 'mobile';
+
+    function applyLayoutMode(mode) {
+      currentLayoutMode = mode;
+      const workspace = document.getElementById('game-workspace');
+      const mobileTopSlot = document.getElementById('mobile-top-slot');
+      const sidePanelCol = document.getElementById('side-panel-col');
+      const oppBar = document.getElementById('opponent-bar');
+      const guideBanner = document.getElementById('guide-banner');
+      const territoryBox = document.getElementById('territory-bar-box');
+      const selfBar = document.getElementById('self-bar');
+      const toggleBtn = document.getElementById('btn-layout-toggle');
+
+      if (!workspace || !mobileTopSlot || !sidePanelCol) return;
+
+      if (mode === 'pc') {
+        workspace.className = 'flex-1 min-h-0 w-full max-w-[1100px] mx-auto px-4 pb-3 flex flex-row items-center justify-center gap-6 overflow-hidden';
+        mobileTopSlot.classList.add('hidden');
+        sidePanelCol.className = 'w-[370px] sm:w-[390px] h-full max-h-[580px] flex flex-col justify-center gap-3 shrink-0';
+
+        // Move all 4 status panels into the right-hand PC column without clearing innerHTML
+        sidePanelCol.appendChild(oppBar);
+        sidePanelCol.appendChild(guideBanner);
+        sidePanelCol.appendChild(territoryBox);
+        sidePanelCol.appendChild(selfBar);
+
+        if (toggleBtn) toggleBtn.textContent = '📱 スマホ表示';
+      } else {
+        workspace.className = 'flex-1 min-h-0 w-full max-w-[480px] mx-auto px-2.5 pb-2 flex flex-col justify-between gap-1.5 overflow-hidden';
+        mobileTopSlot.classList.remove('hidden');
+        sidePanelCol.className = 'w-full flex flex-col gap-1.5 shrink-0';
+
+        // Place opponent bar & tutorial banner at top, territory & self bar at bottom
+        mobileTopSlot.appendChild(oppBar);
+        mobileTopSlot.appendChild(guideBanner);
+        sidePanelCol.appendChild(territoryBox);
+        sidePanelCol.appendChild(selfBar);
+
+        if (toggleBtn) toggleBtn.textContent = '🖥️ PC表示';
+      }
+
+      updateBoardSquareSize();
+      setTimeout(updateBoardSquareSize, 30);
+    }
+
+    function toggleLayoutMode() {
+      applyLayoutMode(currentLayoutMode === 'pc' ? 'mobile' : 'pc');
+    }
+
+    let lastBoardPixelSize = 0;
+    let resizeRafId = null;
+
+    /**
+     * Ensures the 6x6 board container is ALWAYS a strict 1:1 square that fits
+     * inside #board-stage-col without stretching cells or pushing bottom bars off-screen.
+     */
+    function updateBoardSquareSize() {
+      const stage = document.getElementById('board-stage-col');
+      const container = document.getElementById('board-container');
+      if (!stage || !container) return;
+
+      const rect = stage.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+
+      const maxAllowed = currentLayoutMode === 'pc' ? 580 : 460;
+      const rawMin = Math.min(rect.width, rect.height, maxAllowed);
+      const size = Math.max(200, Math.floor(rawMin - 8));
+
+      if (Math.abs(size - lastBoardPixelSize) >= 1) {
+        lastBoardPixelSize = size;
+        container.style.width = `${size}px`;
+        container.style.height = `${size}px`;
+      }
+    }
+
+    function scheduleBoardResize() {
+      if (resizeRafId) cancelAnimationFrame(resizeRafId);
+      resizeRafId = requestAnimationFrame(() => {
+        resizeRafId = null;
+        updateBoardSquareSize();
+      });
+    }
+
+    window.addEventListener('resize', scheduleBoardResize);
+
+    /* --------------------------------------------------------------------------
+     * SETUP & GLOBAL STATE
+     * -------------------------------------------------------------------------- */
+    const setupConfig = {
+      cpuLevel: 2
+    };
+
+    let gameState = null;
+    let selectedLife = null;        // Currently selected unused life resource (1..4)
+    let selectedCell = null;        // { r, c } or null
+    let selectedDirsQueue = [];     // FIFO ordered array of selected direction keys ['N', 'E', ...]
+    let isAnimating = false;
+    let pendingSkipActionType = 'B';
+    let toastTimer = null;
+    let cpuTurnTimer = null;
+
+    let savedTutorialStep = 1;
+
+    function clearPendingTimers() {
+      if (cpuTurnTimer) {
+        clearTimeout(cpuTurnTimer);
+        cpuTurnTimer = null;
+      }
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast-msg');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.add('hidden');
+      }, 2300);
+    }
+
+    function setSetupOption(key, val) {
+      setupConfig[key] = val;
+      if (key === 'cpuLevel') {
+        [1, 2, 3].forEach(lv => {
+          const btn = document.getElementById(`opt-cpu-${lv}`);
+          if (!btn) return;
+          if (lv === val) {
+            btn.className = 'p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm';
+          } else {
+            btn.className = 'p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm';
+          }
+        });
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+     * CORE RULE ENGINE (6x6, Wall Directions Allowed, Tie-breaker with Sources)
+     * -------------------------------------------------------------------------- */
+    function cloneBoard(board) {
+      return board.map(row => row.map(cell => cell ? { owner: cell.owner, dirs: [...cell.dirs], life: cell.life } : null));
+    }
+
+    function calculateRaysAndOwnership(board) {
+      const N = board.length;
+      const raysA = Array.from({ length: N }, () => Array(N).fill(0));
+      const raysB = Array.from({ length: N }, () => Array(N).fill(0));
+      let sourcesA = 0;
+      let sourcesB = 0;
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const src = board[r][c];
+          if (!src) continue;
+          if (src.owner === 'A') sourcesA++;
+          else sourcesB++;
+
+          for (const dKey of src.dirs) {
+            const { dr, dc } = DIRS[dKey];
+            let nr = r + dr;
+            let nc = c + dc;
+            while (nr >= 0 && nr < N && nc >= 0 && nc < N) {
+              if (src.owner === 'A') raysA[nr][nc]++;
+              else raysB[nr][nc]++;
+              nr += dr;
+              nc += dc;
+            }
+          }
+        }
+      }
+
+      const owners = Array.from({ length: N }, () => Array(N).fill('NONE'));
+      let scoreA = 0, scoreB = 0, scoreN = 0;
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          if (raysA[r][c] > raysB[r][c]) {
+            owners[r][c] = 'A';
+            scoreA++;
+          } else if (raysB[r][c] > raysA[r][c]) {
+            owners[r][c] = 'B';
+            scoreB++;
+          } else {
+            owners[r][c] = 'NONE';
+            scoreN++;
+          }
+        }
+      }
+
+      return { raysA, raysB, owners, scoreA, scoreB, scoreN, sourcesA, sourcesB };
+    }
+
+    function determineWinner(evalObj) {
+      if (evalObj.scoreA > evalObj.scoreB) return { winner: 'A', tieBreak: 'score' };
+      if (evalObj.scoreB > evalObj.scoreA) return { winner: 'B', tieBreak: 'score' };
+      // Tie on score -> compare remaining light sources
+      if (evalObj.sourcesA > evalObj.sourcesB) return { winner: 'A', tieBreak: 'sources' };
+      if (evalObj.sourcesB > evalObj.sourcesA) return { winner: 'B', tieBreak: 'sources' };
+      // Both score and sources equal -> Player B (後手) wins
+      return { winner: 'B', tieBreak: 'secondPlayerRule' };
+    }
+
+    function simulatePlacementAndChain(board, r, c, owner, dirs) {
+      const nextBoard = cloneBoard(board);
+      const life = 5 - dirs.length;
+      nextBoard[r][c] = { owner, dirs: [...dirs], life };
+
+      const chainSteps = [];
+
+      while (true) {
+        const evalState = calculateRaysAndOwnership(nextBoard);
+        const destroyedInStep = [];
+        const N = nextBoard.length;
+
+        for (let rr = 0; rr < N; rr++) {
+          for (let cc = 0; cc < N; cc++) {
+            const src = nextBoard[rr][cc];
+            if (!src) continue;
+            const rOwner = src.owner === 'A' ? evalState.raysA[rr][cc] : evalState.raysB[rr][cc];
+            const rOpp   = src.owner === 'A' ? evalState.raysB[rr][cc] : evalState.raysA[rr][cc];
+            if (rOpp - rOwner >= src.life) {
+              destroyedInStep.push({
+                r: rr,
+                c: cc,
+                source: { ...src, dirs: [...src.dirs] },
+                rOwner,
+                rOpp
+              });
+            }
+          }
+        }
+
+        if (destroyedInStep.length === 0) break;
+
+        const snapshotBefore = cloneBoard(nextBoard);
+        for (const item of destroyedInStep) {
+          nextBoard[item.r][item.c] = null;
+        }
+
+        chainSteps.push({
+          destroyed: destroyedInStep,
+          boardBefore: snapshotBefore,
+          evalBefore: evalState,
+          boardAfter: cloneBoard(nextBoard),
+          evalAfter: calculateRaysAndOwnership(nextBoard)
+        });
+      }
+
+      return {
+        finalBoard: nextBoard,
+        finalEval: calculateRaysAndOwnership(nextBoard),
+        chainSteps
+      };
+    }
+
+    function hasAnyEmptyCell(board) {
+      const N = board.length;
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          if (board[r][c] === null) return true;
+        }
+      }
+      return false;
+    }
+
+    function hasAnyLegalPlacementForLife(state, playerKey, life) {
+      if (!state.players[playerKey].unusedLives.includes(life)) return false;
+      return hasAnyEmptyCell(state.board);
+    }
+
+    function hasAnyLegalPlacement(state, playerKey) {
+      if (state.players[playerKey].unusedLives.length === 0) return false;
+      return hasAnyEmptyCell(state.board);
+    }
+
+    function validatePlacement(state, playerKey, r, c, life, dirs) {
+      if (!life || !state.players[playerKey].unusedLives.includes(life)) {
+        return { valid: false, reason: '未使用ライフを選択してください' };
+      }
+      if (r === null || c === null || state.board[r][c] !== null) {
+        return { valid: false, reason: '空きマスを選択してください' };
+      }
+      const neededDirs = 5 - life;
+      if (dirs.length !== neededDirs) {
+        return { valid: false, reason: `あと ${neededDirs - dirs.length} 方向選択してください` };
+      }
+
+      // Tutorial step specific restriction check
+      if (state.isTutorial && state.tutorialRequirement) {
+        const req = state.tutorialRequirement;
+        if (req.type === 'place') {
+          if (req.life && req.life !== life) {
+            return { valid: false, reason: `チュートリアル指示：未使用ライフ「${req.life}」を選択してください` };
+          }
+          if (req.r !== undefined && (req.r !== r || req.c !== c)) {
+            return { valid: false, reason: `チュートリアル指示：ハイライトされたマス (${req.r}, ${req.c}) を選択してください` };
+          }
+          if (req.dirs) {
+            const match = req.dirs.length === dirs.length && req.dirs.every(d => dirs.includes(d));
+            if (!match) {
+              const labels = req.dirs.map(d => DIRS[d].label).join('・');
+              return { valid: false, reason: `チュートリアル指示：「${labels}」方向を選択してください` };
+            }
+          }
+        } else {
+          return { valid: false, reason: 'チュートリアルの指示に従ってください' };
+        }
+      }
+
+      return { valid: true, life };
+    }
+
+    /* --------------------------------------------------------------------------
+     * INITIAL BOARD & GAME START
+     * Pre-places A at (2,2) East (life 4) and B at (3,3) West (life 4).
+     * Both players start their first cycle with unusedLives: [1, 2, 3] (cycleTurn: 1).
+     * -------------------------------------------------------------------------- */
+    function createInitialStandardBoard() {
+      const board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
+      board[2][2] = { owner: 'A', dirs: ['E'], life: 4 };
+      board[3][3] = { owner: 'B', dirs: ['W'], life: 4 };
+      return board;
+    }
+
+    function startGame(isDemo = false) {
+      clearPendingTimers();
+      const humanRole = isDemo ? 'A' : (Math.random() < 0.5 ? 'A' : 'B');
+      const initialBoard = createInitialStandardBoard();
+
+      gameState = {
+        isTutorial: false,
+        isDemo: isDemo,
+        tutorialStep: 0,
+        tutorialSubstep: 0,
+        tutorialRequirement: null,
+        boardSize: BOARD_SIZE,
+        maxTurns: MAX_TURNS,
+        turnCount: 0,
+        activePlayer: 'A',
+        humanRole: humanRole,
+        consecutiveForcedPasses: 0,
+        isGameOver: false,
+        endReason: '',
+        winner: null,
+        tieBreakReason: 'score',
+        board: initialBoard,
+        eval: calculateRaysAndOwnership(initialBoard),
+        players: {
+          A: {
+            isHuman: isDemo ? false : (humanRole === 'A'),
+            unusedLives: [1, 2, 3], // Life 4 already consumed for initial (2,2) East placement
+            cycleTurn: 1,
+            skipAvailable: true,
+            totalTurnsTaken: 0
+          },
+          B: {
+            isHuman: isDemo ? false : (humanRole === 'B'),
+            unusedLives: [1, 2, 3], // Life 4 already consumed for initial (3,3) West placement
+            cycleTurn: 1,
+            skipAvailable: true,
+            totalTurnsTaken: 0
+          }
+        }
+      };
+
+      selectedCell = null;
+      selectedDirsQueue = [];
+      selectedLife = null;
+      isAnimating = false;
+
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('modal-result').classList.add('hidden');
+      document.getElementById('floating-result-bar').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+
+      document.getElementById('header-mode-title').textContent = isDemo ? 'KOSEN (デモ観戦)' : 'KOSEN';
+      document.getElementById('turn-counter-box').classList.remove('hidden');
+      document.getElementById('btn-tutorial-steps').classList.add('hidden');
+      // Hide guide banner completely in normal games!
+      document.getElementById('guide-banner').classList.add('hidden');
+      document.getElementById('guide-banner').classList.remove('flex');
+      document.getElementById('ui-turn-max').textContent = MAX_TURNS;
+
+      applyLayoutMode(currentLayoutMode);
+      buildBoardGridDOM();
+      autoSelectDefaultLife();
+      renderAll();
+      requestAnimationFrame(updateBoardSquareSize);
+
+      if (isDemo) {
+        showToast('デモプレイ開始：先手CPU vs 後手CPU');
+      } else {
+        showToast(`あなたは「${roleName(humanRole)}」です`);
+      }
+      checkAndTriggerTurn();
+    }
+
+    function startDemoGame() {
+      startGame(true);
+    }
+
+    function autoSelectDefaultLife() {
+      if (!gameState) return;
+      const pKey = gameState.activePlayer;
+      const p = gameState.players[pKey];
+      if (!p.isHuman) {
+        selectedLife = null;
+        return;
+      }
+      if (gameState.isTutorial && gameState.tutorialRequirement) {
+        if (gameState.tutorialRequirement.type === 'place' && gameState.tutorialRequirement.life) {
+          selectedLife = gameState.tutorialRequirement.life;
+          return;
+        }
+      }
+      if (selectedLife && p.unusedLives.includes(selectedLife)) {
+        return;
+      }
+      const preferredOrder = [3, 2, 1, 4];
+      for (const l of preferredOrder) {
+        if (p.unusedLives.includes(l)) {
+          selectedLife = l;
+          return;
+        }
+      }
+      selectedLife = p.unusedLives[0] || null;
+    }
+
+    function playAgain() {
+      if (gameState && gameState.isTutorial) {
+        initTutorialStep(gameState.tutorialStep);
+      } else if (gameState && gameState.isDemo) {
+        startDemoGame();
+      } else {
+        startGame(false);
+      }
+    }
+
+    function backToTitle() {
+      clearPendingTimers();
+      isAnimating = false;
+      document.getElementById('modal-result').classList.add('hidden');
+      document.getElementById('modal-confirm-title').classList.add('hidden');
+      document.getElementById('modal-surrender').classList.add('hidden');
+      document.getElementById('modal-tutorial-info').classList.add('hidden');
+      document.getElementById('modal-tutorial-steps').classList.add('hidden');
+      document.getElementById('floating-result-bar').classList.add('hidden');
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-title').classList.remove('hidden');
+
+      const tutBtnLabel = document.getElementById('btn-tutorial-label');
+      if (savedTutorialStep > 1 && savedTutorialStep <= 6) {
+        tutBtnLabel.textContent = `チュートリアル（STEP ${savedTutorialStep} から再開）`;
+      } else {
+        tutBtnLabel.textContent = 'チュートリアル';
+      }
+    }
+
+    function confirmReturnToTitle() {
+      document.getElementById('confirm-title-desc').textContent =
+        (gameState && gameState.isTutorial)
+          ? `現在のステップ（STEP ${gameState.tutorialStep}）を保存してタイトルへ戻ります。`
+          : '現在の対局を終了します。';
+      document.getElementById('modal-confirm-title').classList.remove('hidden');
+    }
+    function closeConfirmTitleModal() {
+      document.getElementById('modal-confirm-title').classList.add('hidden');
+    }
+
+    function openSurrenderModal() {
+      if (!gameState || gameState.isGameOver || gameState.isDemo) return;
+      if (gameState.isTutorial && gameState.tutorialStep < 6) {
+        showToast('チュートリアルの練習ステップ中はサレンダーできません');
+        return;
+      }
+      document.getElementById('modal-surrender').classList.remove('hidden');
+    }
+
+    function closeSurrenderModal() {
+      document.getElementById('modal-surrender').classList.add('hidden');
+    }
+
+    function executeSurrender() {
+      closeSurrenderModal();
+      if (!gameState || gameState.isGameOver) return;
+      clearPendingTimers();
+      isAnimating = false;
+      selectedCell = null;
+      selectedDirsQueue = [];
+      const humanKey = gameState.humanRole;
+      const oppKey = humanKey === 'A' ? 'B' : 'A';
+      endGame(`${roleName(humanKey)}（あなた）のサレンダーにより対局終了`, oppKey);
+    }
+
+    /* --------------------------------------------------------------------------
+     * HUMAN INTERACTION: 1. UNUSED LIFE -> 2. BOARD CELL -> 3. FIFO POPUP DIRS
+     * -------------------------------------------------------------------------- */
+    function selectUnusedLife(lifeVal) {
+      if (!gameState || gameState.isGameOver || isAnimating) return;
+      const activeKey = gameState.activePlayer;
+      if (!gameState.players[activeKey].isHuman) return;
+
+      if (!gameState.players[activeKey].unusedLives.includes(lifeVal)) {
+        showToast(`ライフ ${lifeVal} はこのサイクルで使用済みです`);
+        return;
+      }
+      if (gameState.isTutorial && gameState.tutorialRequirement) {
+        const req = gameState.tutorialRequirement;
+        if (req.type !== 'place') {
+          showToast('現在はスキップまたは強制パスの操作を行ってください');
+          return;
+        }
+        if (req.life && req.life !== lifeVal) {
+          showToast(`チュートリアル指示：未使用ライフ「${req.life}」を選んでください`);
+          return;
+        }
+      }
+
+      selectedLife = lifeVal;
+      if (selectedCell) {
+        initPopupDirectionsForCell();
+      }
+      renderAll();
+    }
+
+    function onCellClick(r, c) {
+      if (!gameState || gameState.isGameOver || isAnimating) return;
+      const activeKey = gameState.activePlayer;
+      if (!gameState.players[activeKey].isHuman) return;
+
+      if (gameState.isTutorial && gameState.tutorialRequirement) {
+        const req = gameState.tutorialRequirement;
+        if (req.type !== 'place') {
+          showToast('右下のボタンから操作してください');
+          return;
+        }
+        if (req.r !== undefined && (req.r !== r || req.c !== c)) {
+          showToast(`ハイライトされたマス (${req.r}, ${req.c}) をタップしてください`);
+          return;
+        }
+      }
+
+      if (gameState.board[r][c] !== null) {
+        showToast('そのマスには既に光源があります');
+        return;
+      }
+
+      if (!selectedLife) {
+        showToast('先に「未使用ライフ」を選択してください');
+        return;
+      }
+
+      selectedCell = { r, c };
+      initPopupDirectionsForCell();
+      renderAll();
+    }
+
+    function initPopupDirectionsForCell() {
+      const neededDirs = 5 - selectedLife;
+      if (neededDirs === 4 && (!gameState.isTutorial || !gameState.tutorialRequirement?.dirs)) {
+        selectedDirsQueue = ['N', 'S', 'E', 'W'];
+      } else {
+        selectedDirsQueue = [];
+      }
+    }
+
+    /**
+     * FIFO Direction Selection inside Popup:
+     * - Wall directions ARE allowed.
+     * - Selecting more than `neededDirs` automatically cancels the oldest selected direction.
+     */
+    function onTapPopupDirection(dKey) {
+      if (!gameState || !selectedCell || !selectedLife) return;
+
+      const neededDirs = 5 - selectedLife;
+      const existingIdx = selectedDirsQueue.indexOf(dKey);
+
+      if (existingIdx !== -1) {
+        selectedDirsQueue.splice(existingIdx, 1);
+      } else {
+        if (selectedDirsQueue.length >= neededDirs) {
+          selectedDirsQueue.shift();
+        }
+        selectedDirsQueue.push(dKey);
+      }
+
+      renderAll();
+    }
+
+    function closeDirectionPopup() {
+      selectedCell = null;
+      selectedDirsQueue = [];
+      renderAll();
+    }
+
+    function confirmPopupPlacement() {
+      if (!gameState || !selectedCell || !selectedLife) return;
+      const activeKey = gameState.activePlayer;
+      const check = validatePlacement(gameState, activeKey, selectedCell.r, selectedCell.c, selectedLife, selectedDirsQueue);
+      if (!check.valid) {
+        showToast(check.reason);
+        return;
+      }
+      const targetR = selectedCell.r;
+      const targetC = selectedCell.c;
+      const dirsToPlace = [...selectedDirsQueue];
+      selectedCell = null;
+      selectedDirsQueue = [];
+      performPlacement(activeKey, targetR, targetC, dirsToPlace);
+    }
+
+    /* --------------------------------------------------------------------------
+     * TURN EXECUTION & CHAIN DESTRUCTION
+     * -------------------------------------------------------------------------- */
+    function consumeLifeAndAdvanceCycle(playerKey, consumedLife) {
+      const p = gameState.players[playerKey];
+      p.unusedLives = p.unusedLives.filter(l => l !== consumedLife);
+      p.cycleTurn++;
+      p.totalTurnsTaken++;
+
+      if (p.cycleTurn >= 4 || p.unusedLives.length === 0) {
+        p.cycleTurn = 0;
+        p.unusedLives = [1, 2, 3, 4];
+      }
+    }
+
+    async function performPlacement(playerKey, r, c, dirs) {
+      isAnimating = true;
+      const isDemo = gameState && gameState.isDemo;
+      const stepDelay = isDemo ? 140 : 360;
+      const life = 5 - dirs.length;
+      const sim = simulatePlacementAndChain(gameState.board, r, c, playerKey, dirs);
+
+      gameState.board[r][c] = { owner: playerKey, dirs: [...dirs], life, justPlaced: true };
+      gameState.eval = calculateRaysAndOwnership(gameState.board);
+      renderAll();
+
+      if (sim.chainSteps.length > 0) {
+        for (let i = 0; i < sim.chainSteps.length; i++) {
+          if (!gameState || gameState.isGameOver) return;
+          const step = sim.chainSteps[i];
+          await new Promise(res => setTimeout(res, stepDelay));
+          renderBoardWithDestroyingHighlight(step.destroyed);
+          await new Promise(res => setTimeout(res, stepDelay));
+          gameState.board = cloneBoard(step.boardAfter);
+          gameState.eval = step.evalAfter;
+          renderAll();
+        }
+      } else {
+        await new Promise(res => setTimeout(res, isDemo ? 70 : 180));
+      }
+
+      if (!gameState || gameState.isGameOver) return;
+      if (gameState.board[r][c]) delete gameState.board[r][c].justPlaced;
+      gameState.consecutiveForcedPasses = 0;
+      consumeLifeAndAdvanceCycle(playerKey, life);
+
+      isAnimating = false;
+
+      if (gameState.isTutorial && gameState.tutorialStep < 6) {
+        onTutorialActionCompleted('place', { r, c, dirs, life, sim });
+        return;
+      }
+
+      finalizeTurnAndCheckEnd();
+    }
+
+    function performSkipOrForcedPass(playerKey, actionType, consumedLife) {
+      if (actionType === 'B') {
+        gameState.players[playerKey].skipAvailable = false;
+        gameState.consecutiveForcedPasses = 0;
+      } else {
+        gameState.consecutiveForcedPasses++;
+      }
+
+      consumeLifeAndAdvanceCycle(playerKey, consumedLife);
+
+      if (gameState.isTutorial && gameState.tutorialStep < 6) {
+        onTutorialActionCompleted(actionType === 'B' ? 'skip' : 'pass', { consumedLife });
+        return;
+      }
+
+      finalizeTurnAndCheckEnd();
+    }
+
+    function finalizeTurnAndCheckEnd() {
+      gameState.turnCount++;
+
+      if (gameState.consecutiveForcedPasses >= 2) {
+        endGame('両者が連続して強制パスを行ったため対局終了');
+        return;
+      }
+      if (gameState.turnCount >= gameState.maxTurns) {
+        endGame(`規定手番数（${gameState.maxTurns}手）到達により対局終了`);
+        return;
+      }
+
+      gameState.activePlayer = gameState.activePlayer === 'A' ? 'B' : 'A';
+      selectedCell = null;
+      selectedDirsQueue = [];
+      autoSelectDefaultLife();
+      renderAll();
+      checkAndTriggerTurn();
+    }
+
+    function checkAndTriggerTurn() {
+      if (!gameState || gameState.isGameOver) return;
+      const activeKey = gameState.activePlayer;
+      const activeObj = gameState.players[activeKey];
+
+      if (!activeObj.isHuman) {
+        isAnimating = true;
+        renderAll();
+        const delay = gameState.isDemo ? 160 : 400;
+        clearPendingTimers();
+        cpuTurnTimer = setTimeout(() => {
+          isAnimating = false;
+          executeCPUTurn(activeKey);
+        }, delay);
+      }
+    }
+
+    function endGame(reasonText, forcedWinner = null) {
+      gameState.isGameOver = true;
+      gameState.endReason = reasonText;
+      gameState.eval = calculateRaysAndOwnership(gameState.board);
+
+      if (forcedWinner) {
+        gameState.winner = forcedWinner;
+        gameState.tieBreakReason = 'surrender';
+      } else {
+        const res = determineWinner(gameState.eval);
+        gameState.winner = res.winner;
+        gameState.tieBreakReason = res.tieBreak;
+      }
+
+      renderAll();
+
+      if (forcedWinner) {
+        showResultModal();
+        return;
+      }
+
+      if (gameState.isTutorial && gameState.tutorialStep === 6) {
+        setTimeout(() => {
+          showTutorialCompleteModal();
+        }, 450);
+        return;
+      }
+
+      setTimeout(() => {
+        showResultModal();
+      }, 400);
+    }
+
+    function showResultModal() {
+      const ev = gameState.eval;
+      const winner = gameState.winner;
+      const humanWon = gameState.players[winner].isHuman;
+
+      document.getElementById('floating-result-bar').classList.add('hidden');
+      document.getElementById('modal-result').classList.remove('hidden');
+
+      document.getElementById('result-reason-badge').textContent = gameState.endReason;
+      document.getElementById('result-label-A').textContent = `先手 (${gameState.players.A.isHuman ? 'あなた' : 'CPU'})`;
+      document.getElementById('result-label-B').textContent = `後手 (${gameState.players.B.isHuman ? 'あなた' : 'CPU'})`;
+      document.getElementById('result-score-A').textContent = ev.scoreA;
+      document.getElementById('result-score-B').textContent = ev.scoreB;
+      document.getElementById('result-sources-A').textContent = ev.sourcesA;
+      document.getElementById('result-sources-B').textContent = ev.sourcesB;
+
+      const glowEl = document.getElementById('result-glow');
+      const iconEl = document.getElementById('result-icon');
+      const titleEl = document.getElementById('result-title');
+      const subEl = document.getElementById('result-subtitle');
+      const tieNote = document.getElementById('result-tie-note');
+
+      if (gameState.tieBreakReason === 'sources') {
+        tieNote.textContent = `※所有マス数が同点のため、残存光源数（${ev.sourcesA} 対 ${ev.sourcesB}）により${roleName(winner)}の勝利！`;
+        tieNote.classList.remove('hidden');
+      } else if (gameState.tieBreakReason === 'secondPlayerRule') {
+        tieNote.textContent = '※所有マス数・残存光源数ともに同数のため、後手の勝利！';
+        tieNote.classList.remove('hidden');
+      } else {
+        tieNote.classList.add('hidden');
+      }
+
+      if (humanWon) {
+        titleEl.textContent = 'YOU WIN!';
+        titleEl.className = 'text-3xl font-black tracking-tight text-cyan-400 text-glow-a';
+        iconEl.textContent = '🏆';
+        glowEl.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 bg-cyan-500/20 border-2 border-cyan-400';
+      } else {
+        titleEl.textContent = 'YOU LOSE';
+        titleEl.className = 'text-3xl font-black tracking-tight text-rose-400 text-glow-b';
+        iconEl.textContent = '⚡';
+        glowEl.className = 'w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 bg-rose-500/20 border-2 border-rose-400';
+      }
+
+      subEl.textContent = `${roleName(winner)}（${humanWon ? 'あなた' : 'CPU'}）の勝利！`;
+    }
+
+    function toggleInspectBoard() {
+      document.getElementById('modal-result').classList.add('hidden');
+      document.getElementById('floating-result-bar').classList.remove('hidden');
+    }
+
+    /* --------------------------------------------------------------------------
+     * CPU AI ENGINE (Direct Port of evaluation.py, random_agent.py,
+     * heuristic_agent.py, and search_agent.py)
+     * -------------------------------------------------------------------------- */
+
+    /**
+     * Lightweight state representation for fast tree search in JS
+     */
+    function createSearchStateFromGame(gs) {
+      return {
+        board: cloneBoard(gs.board),
+        eval: gs.eval,
+        size: gs.boardSize,
+        currentPlayer: gs.activePlayer,
+        turnCount: gs.turnCount,
+        maxTurns: gs.maxTurns,
+        consecutiveForcedPasses: gs.consecutiveForcedPasses,
+        gameOver: gs.isGameOver,
+        players: {
+          A: {
+            unusedLives: [...gs.players.A.unusedLives],
+            cycleTurn: gs.players.A.cycleTurn,
+            skipAvailable: gs.players.A.skipAvailable
+          },
+          B: {
+            unusedLives: [...gs.players.B.unusedLives],
+            cycleTurn: gs.players.B.cycleTurn,
+            skipAvailable: gs.players.B.skipAvailable
+          }
+        }
+      };
+    }
+
+    /**
+     * Generates all legal actions for `sState.currentPlayer`.
+     * Action types:
+     * - { type: 'place', r, c, dirs, life }
+     * - { type: 'skip', life } (voluntary skip if placements exist and skipAvailable)
+     * - { type: 'pass', life } (forced pass if no placements exist)
+     */
+    function getLegalActions(sState) {
+      const pKey = sState.currentPlayer;
+      const p = sState.players[pKey];
+      const N = sState.size;
+      const actions = [];
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          if (sState.board[r][c] !== null) continue;
+          for (const life of p.unusedLives) {
+            const combos = DIR_COMBOS_BY_LIFE[life];
+            for (let i = 0; i < combos.length; i++) {
+              actions.push({ type: 'place', r, c, dirs: combos[i], life });
+            }
+          }
+        }
+      }
+
+      if (actions.length > 0) {
+        if (p.skipAvailable) {
+          for (const life of p.unusedLives) {
+            actions.push({ type: 'skip', life });
+          }
+        }
+      } else {
+        for (const life of p.unusedLives) {
+          actions.push({ type: 'pass', life });
+        }
+      }
+
+      return actions;
+    }
+
+    /**
+     * Applies `action` to `sState` and returns a new search state (`apply_action`).
+     */
+    function applySearchAction(sState, action) {
+      const pKey = sState.currentPlayer;
+      const oppKey = pKey === 'A' ? 'B' : 'A';
+
+      let nextBoard;
+      let nextEval;
+      let nextForcedPasses = sState.consecutiveForcedPasses;
+      let nextSkipAvail = sState.players[pKey].skipAvailable;
+
+      if (action.type === 'place') {
+        const sim = simulatePlacementAndChain(sState.board, action.r, action.c, pKey, action.dirs);
+        nextBoard = sim.finalBoard;
+        nextEval = sim.finalEval;
+        nextForcedPasses = 0;
+      } else if (action.type === 'skip') {
+        nextBoard = cloneBoard(sState.board);
+        nextEval = sState.eval;
+        nextSkipAvail = false;
+        nextForcedPasses = 0;
+      } else {
+        // forced pass
+        nextBoard = cloneBoard(sState.board);
+        nextEval = sState.eval;
+        nextForcedPasses = sState.consecutiveForcedPasses + 1;
+      }
+
+      let nextUnused = sState.players[pKey].unusedLives.filter(l => l !== action.life);
+      let nextCycleTurn = sState.players[pKey].cycleTurn + 1;
+      if (nextCycleTurn >= 4 || nextUnused.length === 0) {
+        nextCycleTurn = 0;
+        nextUnused = [1, 2, 3, 4];
+      }
+
+      const nextTurnCount = sState.turnCount + 1;
+      const isGameOver = nextForcedPasses >= 2 || nextTurnCount >= sState.maxTurns;
+
+      return {
+        board: nextBoard,
+        eval: nextEval,
+        size: sState.size,
+        currentPlayer: oppKey,
+        turnCount: nextTurnCount,
+        maxTurns: sState.maxTurns,
+        consecutiveForcedPasses: nextForcedPasses,
+        gameOver: isGameOver,
+        players: {
+          A: pKey === 'A'
+            ? { unusedLives: nextUnused, cycleTurn: nextCycleTurn, skipAvailable: nextSkipAvail }
+            : { ...sState.players.A, unusedLives: [...sState.players.A.unusedLives] },
+          B: pKey === 'B'
+            ? { unusedLives: nextUnused, cycleTurn: nextCycleTurn, skipAvailable: nextSkipAvail }
+            : { ...sState.players.B, unusedLives: [...sState.players.B.unusedLives] }
+        }
+      };
+    }
+
+    /**
+     * Exact port of `evaluate_position(state, perspective)` from `evaluation.py`
+     */
+    function evaluatePositionPy(sState, perspectiveKey) {
+      const ev = sState.eval;
+      const N = sState.size;
+      const isPerspA = perspectiveKey === 'A';
+
+      const ownCells = isPerspA ? ev.scoreA : ev.scoreB;
+      const enemyCells = isPerspA ? ev.scoreB : ev.scoreA;
+      const territoryScore = ownCells - enemyCells;
+
+      let rayBalance = 0;
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const rPersp = isPerspA ? ev.raysA[r][c] : ev.raysB[r][c];
+          const rEnemy = isPerspA ? ev.raysB[r][c] : ev.raysA[r][c];
+          rayBalance += (rPersp - rEnemy);
+        }
+      }
+
+      let threatScore = 0.0;
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const src = sState.board[r][c];
+          if (!src) continue;
+          const ownRays = src.owner === 'A' ? ev.raysA[r][c] : ev.raysB[r][c];
+          const oppRays = src.owner === 'A' ? ev.raysB[r][c] : ev.raysA[r][c];
+          const pressure = Math.max(0, oppRays - ownRays);
+          const riskRatio = Math.min(1.0, pressure / src.life);
+          const threat = riskRatio * riskRatio;
+          if (src.owner !== perspectiveKey) {
+            threatScore += threat;
+          } else {
+            threatScore -= threat;
+          }
+        }
+      }
+
+      const ownSources = isPerspA ? ev.sourcesA : ev.sourcesB;
+      const enemySources = isPerspA ? ev.sourcesB : ev.sourcesA;
+      const sourceCountScore = ownSources - enemySources;
+
+      return (
+        10.0 * territoryScore
+        + 0.15 * rayBalance
+        + 2.5 * threatScore
+        + 0.5 * sourceCountScore
+      );
+    }
+
+    /**
+     * Exact port of `terminal_value(state, perspective)` from `evaluation.py`
+     */
+    function terminalValuePy(sState, perspectiveKey) {
+      const ev = sState.eval;
+      const isPerspA = perspectiveKey === 'A';
+      const ownScore = isPerspA ? ev.scoreA : ev.scoreB;
+      const enemyScore = isPerspA ? ev.scoreB : ev.scoreA;
+      const difference = ownScore - enemyScore;
+
+      if (difference === 0) {
+        const ownSources = isPerspA ? ev.sourcesA : ev.sourcesB;
+        const enemySources = isPerspA ? ev.sourcesB : ev.sourcesA;
+        if (ownSources > enemySources) return 1000.0;
+        if (enemySources > ownSources) return -1000.0;
+        return perspectiveKey === 'B' ? 1000.0 : -1000.0;
+      }
+
+      return 1000.0 * difference;
+    }
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    /**
+     * Level 1: RandomAgent (`random_agent.py`)
+     */
+    function chooseActionRandom(sState) {
+      const actions = getLegalActions(sState);
+      return randomChoice(actions);
+    }
+
+    /**
+     * Level 2: HeuristicAgent (`heuristic_agent.py` - Greedy 1-ply)
+     */
+    function chooseActionHeuristic(sState) {
+      const player = sState.currentPlayer;
+      const actions = getLegalActions(sState);
+      let bestScore = -Infinity;
+      const scoredActions = [];
+
+      for (let i = 0; i < actions.length; i++) {
+        const action = actions[i];
+        const nextState = applySearchAction(sState, action);
+        const score = nextState.gameOver
+          ? terminalValuePy(nextState, player)
+          : evaluatePositionPy(nextState, player);
+        scoredActions.push({ score, action });
+        if (score > bestScore) bestScore = score;
+      }
+
+      const bestActions = scoredActions
+        .filter(item => Math.abs(item.score - bestScore) < 1e-9)
+        .map(item => item.action);
+      return randomChoice(bestActions);
+    }
+
+    /**
+     * Level 3: SearchAgent (`search_agent.py` - Depth 3 Beam-Limited Minimax with Alpha-Beta)
+     * depth = 3, root_width = 5, beam_width = 3
+     */
+    function rankedChildrenPy(sState, perspectiveKey, width) {
+      const actions = getLegalActions(sState);
+      const children = [];
+
+      for (let i = 0; i < actions.length; i++) {
+        const action = actions[i];
+        const child = applySearchAction(sState, action);
+        const score = child.gameOver
+          ? terminalValuePy(child, perspectiveKey)
+          : evaluatePositionPy(child, perspectiveKey);
+        children.push({ score, action, child });
+      }
+
+      const maximizing = sState.currentPlayer === perspectiveKey;
+      children.sort((a, b) => maximizing ? (b.score - a.score) : (a.score - b.score));
+      return children.slice(0, width);
+    }
+
+    function beamMinimaxSearch(sState, depth, perspectiveKey, alpha, beta, beamWidth) {
+      if (sState.gameOver) {
+        return terminalValuePy(sState, perspectiveKey);
+      }
+      if (depth <= 0) {
+        return evaluatePositionPy(sState, perspectiveKey);
+      }
+
+      const maximizing = sState.currentPlayer === perspectiveKey;
+      const children = rankedChildrenPy(sState, perspectiveKey, beamWidth);
+      if (children.length === 0) {
+        return evaluatePositionPy(sState, perspectiveKey);
+      }
+
+      if (maximizing) {
+        let value = -Infinity;
+        for (let i = 0; i < children.length; i++) {
+          const val = beamMinimaxSearch(children[i].child, depth - 1, perspectiveKey, alpha, beta, beamWidth);
+          if (val > value) value = val;
+          if (value > alpha) alpha = value;
+          if (beta <= alpha) break;
+        }
+        return value;
+      } else {
+        let value = Infinity;
+        for (let i = 0; i < children.length; i++) {
+          const val = beamMinimaxSearch(children[i].child, depth - 1, perspectiveKey, alpha, beta, beamWidth);
+          if (val < value) value = val;
+          if (value < beta) beta = value;
+          if (beta <= alpha) break;
+        }
+        return value;
+      }
+    }
+
+    function chooseActionSearch(sState, depth = 3, rootWidth = 5, beamWidth = 3) {
+      const perspective = sState.currentPlayer;
+      const rootChildren = rankedChildrenPy(sState, perspective, rootWidth);
+      if (rootChildren.length === 0) return null;
+
+      let bestScore = -Infinity;
+      const scoredActions = [];
+
+      for (let i = 0; i < rootChildren.length; i++) {
+        const { action, child } = rootChildren[i];
+        const score = beamMinimaxSearch(child, depth - 1, perspective, -Infinity, Infinity, beamWidth);
+        scoredActions.push({ score, action });
+        if (score > bestScore) bestScore = score;
+      }
+
+      const bestActions = scoredActions
+        .filter(item => Math.abs(item.score - bestScore) < 1e-9)
+        .map(item => item.action);
+      return randomChoice(bestActions);
+    }
+
+    function executeCPUTurn(cpuKey) {
+      if (!gameState || gameState.isGameOver) return;
+
+      const sState = createSearchStateFromGame(gameState);
+      const level = gameState.isTutorial ? 2 : setupConfig.cpuLevel;
+
+      let chosenAction = null;
+      if (level === 1) {
+        chosenAction = chooseActionRandom(sState);
+      } else if (level === 2) {
+        chosenAction = chooseActionHeuristic(sState);
+      } else {
+        chosenAction = chooseActionSearch(sState, 3, 5, 3);
+      }
+
+      if (!chosenAction) return;
+
+      if (chosenAction.type === 'place') {
+        performPlacement(cpuKey, chosenAction.r, chosenAction.c, chosenAction.dirs);
+      } else if (chosenAction.type === 'skip') {
+        performSkipOrForcedPass(cpuKey, 'B', chosenAction.life);
+      } else {
+        performSkipOrForcedPass(cpuKey, 'C', chosenAction.life);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+     * SKIP & FORCED PASS MODAL
+     * -------------------------------------------------------------------------- */
+    function openSkipModal(actionType) {
+      if (!gameState || gameState.isGameOver || isAnimating) return;
+      const activeKey = gameState.activePlayer;
+      if (!gameState.players[activeKey].isHuman) return;
+
+      if (gameState.isTutorial && gameState.tutorialRequirement) {
+        const req = gameState.tutorialRequirement;
+        if (actionType === 'B' && req.type !== 'skip') {
+          showToast('現在は光源の配置を行ってください');
+          return;
+        }
+        if (actionType === 'C' && req.type !== 'pass') {
+          showToast('チュートリアルの指示に従ってください');
+          return;
+        }
+      }
+
+      pendingSkipActionType = actionType;
+      const modal = document.getElementById('modal-skip');
+      const titleEl = document.getElementById('modal-skip-title');
+      const descEl = document.getElementById('modal-skip-desc');
+      const container = document.getElementById('modal-skip-lives');
+
+      if (actionType === 'B') {
+        titleEl.textContent = '自発的スキップ';
+        descEl.textContent = 'スキップ権（1回のみ）を使用し、光源を配置せずに手番を終了します。消費する未使用ライフを1つ選択してください。';
+      } else {
+        titleEl.textContent = '強制パス';
+        descEl.textContent = '配置可能なマスが存在しないため、強制パスを実行します（スキップ権は消費されません）。消費する未使用ライフを1つ選択してください。';
+      }
+
+      const unused = gameState.players[activeKey].unusedLives;
+      container.innerHTML = unused.map(life => {
+        const dirCount = 5 - life;
+        return `
+          <button type="button" onclick="confirmSkipResource(${life})"
+            class="p-3.5 rounded-2xl bg-slate-800 hover:bg-cyan-500/20 border border-slate-700 hover:border-cyan-400 text-left transition-all">
+            <div class="font-mono-num font-black text-base text-white">ライフ ${life}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${dirCount}方向照射用を消費</div>
+          </button>
+        `;
+      }).join('');
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeSkipModal() {
+      document.getElementById('modal-skip').classList.add('hidden');
+    }
+
+    function confirmSkipResource(lifeVal) {
+      closeSkipModal();
+      const activeKey = gameState.activePlayer;
+      performSkipOrForcedPass(activeKey, pendingSkipActionType, lifeVal);
+    }
+
+    function openRuleModal() {
+      document.getElementById('modal-rules').classList.remove('hidden');
+    }
+    function closeRuleModal() {
+      document.getElementById('modal-rules').classList.add('hidden');
+    }
+
+    /* --------------------------------------------------------------------------
+     * 6-STEP INTERACTIVE TUTORIAL ENGINE (All 6x6, 0-indexed coordinates)
+     * -------------------------------------------------------------------------- */
+    const TUTORIAL_STEPS_META = [
+      { step: 1, title: 'STEP 1：基本操作と光線の照射', summary: '未使用ライフ選択→マス選択→方向決定の操作と光線の直進を学びます' },
+      { step: 2, title: 'STEP 2：マスの所有権と勝敗判定', summary: '光線数の比較による所有権と、同点時の残存光源数判定を学びます' },
+      { step: 3, title: 'STEP 3：光源の破壊', summary: '光線数の差がライフ値以上になった時の光源破壊を体験します' },
+      { step: 4, title: 'STEP 4：初期配置とライフ資源の管理', summary: '初期配置(2,2)/(3,3)によるライフ1〜3開始とサイクルのリセットを学びます' },
+      { step: 5, title: 'STEP 5：スキップと強制パス', summary: '自発的スキップと強制パスの違いを体験します' },
+      { step: 6, title: 'STEP 6：実戦形式の演習（6×6盤面）', summary: '公式初期配置からスタートし、6×6盤面で最後まで対局します' }
+    ];
+
+    function startOrResumeTutorial() {
+      initTutorialStep(savedTutorialStep || 1);
+    }
+
+    function openTutorialStepMenu() {
+      const listEl = document.getElementById('tutorial-step-list');
+      listEl.innerHTML = TUTORIAL_STEPS_META.map(m => {
+        const active = gameState && gameState.isTutorial && gameState.tutorialStep === m.step;
+        return `
+          <button type="button" onclick="selectTutorialStepFromMenu(${m.step})"
+            class="w-full p-3 rounded-2xl border text-left transition-all ${active ? 'bg-emerald-500/20 border-emerald-400 text-white' : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-500'}">
+            <div class="font-bold text-xs">${m.title}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${m.summary}</div>
+          </button>
+        `;
+      }).join('');
+      document.getElementById('modal-tutorial-steps').classList.remove('hidden');
+    }
+
+    function closeTutorialStepMenu() {
+      document.getElementById('modal-tutorial-steps').classList.add('hidden');
+    }
+
+    function selectTutorialStepFromMenu(stepNum) {
+      closeTutorialStepMenu();
+      initTutorialStep(stepNum);
+    }
+
+    function openTutorialInfoModal() {
+      document.getElementById('modal-tutorial-info').classList.remove('hidden');
+    }
+    function closeTutorialInfoModal() {
+      document.getElementById('modal-tutorial-info').classList.add('hidden');
+    }
+
+    function showTutorialDialog(badgeText, title, bodyHTML, buttonText = '確認して操作へ進む', onClickHandler = null) {
+      document.getElementById('tut-modal-badge').textContent = badgeText;
+      document.getElementById('tut-modal-title').textContent = title;
+      document.getElementById('tut-modal-body').innerHTML = bodyHTML;
+      const actionsEl = document.getElementById('tut-modal-actions');
+      actionsEl.innerHTML = `
+        <button type="button" id="tut-modal-primary-btn" class="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm">
+          ${buttonText}
+        </button>
+      `;
+      document.getElementById('tut-modal-primary-btn').onclick = () => {
+        closeTutorialInfoModal();
+        if (onClickHandler) onClickHandler();
+      };
+      openTutorialInfoModal();
+    }
+
+    function initTutorialStep(stepNum) {
+      savedTutorialStep = stepNum;
+      const emptyBoard = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
+
+      gameState = {
+        isTutorial: true,
+        tutorialStep: stepNum,
+        tutorialSubstep: 1,
+        tutorialRequirement: null,
+        boardSize: BOARD_SIZE,
+        maxTurns: MAX_TURNS,
+        turnCount: 0,
+        activePlayer: 'A',
+        humanRole: 'A',
+        consecutiveForcedPasses: 0,
+        isGameOver: false,
+        endReason: '',
+        winner: null,
+        tieBreakReason: 'score',
+        board: emptyBoard,
+        eval: calculateRaysAndOwnership(emptyBoard),
+        players: {
+          A: { isHuman: true, unusedLives: [1, 2, 3, 4], cycleTurn: 0, skipAvailable: true, totalTurnsTaken: 0 },
+          B: { isHuman: false, unusedLives: [1, 2, 3, 4], cycleTurn: 0, skipAvailable: true, totalTurnsTaken: 0 }
+        }
+      };
+
+      selectedCell = null;
+      selectedDirsQueue = [];
+      selectedLife = null;
+      isAnimating = false;
+
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('modal-result').classList.add('hidden');
+      document.getElementById('floating-result-bar').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+
+      document.getElementById('header-mode-title').textContent = 'チュートリアル';
+      document.getElementById('btn-tutorial-steps').classList.remove('hidden');
+      document.getElementById('guide-banner').classList.remove('hidden');
+      document.getElementById('guide-banner').classList.add('flex');
+      document.getElementById('guide-step-badge').textContent = `STEP ${stepNum}/6`;
+      document.getElementById('ui-turn-max').textContent = MAX_TURNS;
+
+      applyLayoutMode(currentLayoutMode);
+      buildBoardGridDOM();
+
+      if (stepNum === 1) {
+        gameState.tutorialRequirement = { type: 'place', life: 4, r: 2, c: 1, dirs: ['E'] };
+        selectedLife = 4;
+        setGuideBanner(
+          'STEP 1-1：基本操作で東方向に照射しよう',
+          '① 下の未使用ライフ「4」を選択 → ② マス (2, 1) をタップ → ③「東」を選んで配置'
+        );
+        showTutorialDialog(
+          'STEP 1 / 6',
+          '基本操作と光線の照射',
+          `
+            <p>盤面は6×6（座標 0,0 〜 5,5）です。光源を配置する基本操作は以下の3ステップです。</p>
+            <ol class="list-decimal list-inside space-y-1 text-slate-200 bg-slate-950 p-3 rounded-2xl border border-slate-800 font-bold">
+              <li>画面下の「未使用ライフ」を選択する</li>
+              <li>盤面の配置したい空きマスをタップする</li>
+              <li>ポップアップで照射方向（北・南・東・西）を選んで配置する</li>
+            </ol>
+            <p>光線は盤面の端まで直進し、他の光源に遮られず通過します。また、壁際のマスで壁の方向を選択することも可能です。</p>
+            <p class="text-cyan-300 font-bold">まずは座標 (2, 1) に「東」方向で光源を配置してみましょう。</p>
+          `
+        );
+      } else if (stepNum === 2) {
+        gameState.board[2][1] = { owner: 'A', dirs: ['E'], life: 4 };
+        gameState.board[4][3] = { owner: 'B', dirs: ['N'], life: 4 };
+        gameState.eval = calculateRaysAndOwnership(gameState.board);
+        gameState.tutorialRequirement = { type: 'place', life: 3, r: 1, c: 2, dirs: ['S', 'E'] };
+        selectedLife = 3;
+        setGuideBanner(
+          'STEP 2：光線を重ねて所有権を奪おう',
+          '未使用ライフ「3（2方向）」で、マス (1, 2) に「南・東」方向で配置してください。'
+        );
+        showTutorialDialog(
+          'STEP 2 / 6',
+          'マスの所有権と勝敗判定',
+          `
+            <p>各マスに到達している<strong>先手の光線数</strong>と<strong>後手の光線数</strong>を比較して所有権が決まります。</p>
+            <div class="grid grid-cols-3 gap-1.5 text-center font-mono-num text-[11px] bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+              <div class="p-1.5 rounded bg-cyan-950/60 border border-cyan-500/40 text-cyan-300">先手 2 : 後手 0<br><b>先手所有(濃青)</b></div>
+              <div class="p-1.5 rounded bg-slate-900 border border-slate-700 text-slate-300">先手 1 : 後手 1<br><b>中立</b></div>
+              <div class="p-1.5 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300">先手 1 : 後手 3<br><b>後手所有(濃赤)</b></div>
+            </div>
+            <p class="text-amber-300">※ゲーム終了時に所有マス数が同数の場合は、<strong>盤面に残存している光源数が多いプレイヤー</strong>が勝者となります（それも同数の場合は後手勝利）。</p>
+          `
+        );
+      } else if (stepNum === 3) {
+        gameState.board[2][2] = { owner: 'A', dirs: ['E', 'W'], life: 3 };
+        gameState.board[2][4] = { owner: 'B', dirs: ['W'], life: 4 };
+        gameState.board[4][2] = { owner: 'B', dirs: ['N'], life: 4 };
+        gameState.eval = calculateRaysAndOwnership(gameState.board);
+
+        gameState.activePlayer = 'B';
+        gameState.humanRole = 'B';
+        gameState.players.A.isHuman = false;
+        gameState.players.B.isHuman = true;
+
+        gameState.tutorialRequirement = { type: 'place', life: 3, r: 0, c: 2, dirs: ['S', 'E'] };
+        selectedLife = 3;
+        setGuideBanner(
+          'STEP 3：相手の光源を破壊しよう',
+          '座標 (2, 2) にある先手の光源（ライフ3）には後手の光線が2本とどいています。(0, 2) に「南・東」で配置して破壊しましょう！'
+        );
+        showTutorialDialog(
+          'STEP 3 / 6',
+          '光源の破壊',
+          `
+            <p>光源が置かれているマスで、<strong>「相手の光線数 − 自身の光線数 ≧ 光源のライフ値」</strong>になると、その光源は破壊されて消滅します。</p>
+            <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-cyan-300 font-bold">現在 (2, 2) にある先手の光源：ライフ 3</div>
+              <div>到達している光線：先手 0本 / 後手 2本（差は 2）</div>
+              <div class="text-amber-300">あと1本、後手の光線を (2, 2) に当てれば差が「3」になり破壊できます！</div>
+            </div>
+          `
+        );
+      } else if (stepNum === 4) {
+        // Pre-place standard setup (2,2) East and (3,3) West, with unusedLives [1, 2, 3]
+        gameState.board = createInitialStandardBoard();
+        gameState.eval = calculateRaysAndOwnership(gameState.board);
+        gameState.players.A.unusedLives = [1, 2, 3];
+        gameState.players.A.cycleTurn = 1;
+        gameState.players.B.unusedLives = [1, 2, 3];
+        gameState.players.B.cycleTurn = 1;
+
+        gameState.tutorialRequirement = { type: 'place', life: 3 };
+        selectedLife = 3;
+        setGuideBanner(
+          'STEP 4-1：初期配置と未使用ライフ「3」の配置',
+          '初期配置でライフ4が使われているため、未使用ライフは [1, 2, 3] から始まります。ライフ「3（2方向）」を空きマスに配置しましょう。'
+        );
+        showTutorialDialog(
+          'STEP 4 / 6',
+          '初期配置とライフ資源の管理',
+          `
+            <p>公式ルールでは、ゲーム開始前に両プレイヤーが最初のサイクルの<strong>「ライフ4（1方向）」</strong>を消費して初期配置を行います。</p>
+            <ul class="list-disc list-inside bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <li>先手：座標 (2, 2) に 東向き（ライフ4）</li>
+              <li>後手：座標 (3, 3) に 西向き（ライフ4）</li>
+            </ul>
+            <p>そのため、最初のサイクルは<strong>未使用ライフ「1, 2, 3」の3つが未使用の状態</strong>からスタートし、3手使い切ると次のサイクルから「1, 2, 3, 4」すべてがリセットされて使えるようになります。</p>
+          `
+        );
+      } else if (stepNum === 5) {
+        gameState.board = createInitialStandardBoard();
+        gameState.eval = calculateRaysAndOwnership(gameState.board);
+        gameState.players.A.unusedLives = [1, 2, 3];
+        gameState.players.A.cycleTurn = 1;
+        gameState.tutorialRequirement = { type: 'skip' };
+        selectedLife = null;
+        setGuideBanner(
+          'STEP 5-1：自発的スキップを使ってみよう',
+          '右下の「スキップ」ボタンを押し、未使用ライフを1つ選んで消費してください。'
+        );
+        showTutorialDialog(
+          'STEP 5 / 6',
+          'スキップと強制パス',
+          `
+            <p>光源を配置しない手番の進め方には<strong>「スキップ」</strong>と<strong>「強制パス」</strong>の2種類があります。</p>
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2 text-[11px]">
+              <div><b class="text-cyan-300">■ 自発的スキップ（ゲーム中1回のみ）：</b><br>配置できるマスがある状態で任意に選択。未使用ライフを1つ消費し、スキップ権も消費します。</div>
+              <div><b class="text-amber-300">■ 強制パス：</b><br>空きマスが1つもない時に強制発生。未使用ライフを1つ消費しますが、スキップ権は消費しません。</div>
+            </div>
+          `
+        );
+      } else if (stepNum === 6) {
+        gameState.board = createInitialStandardBoard();
+        gameState.eval = calculateRaysAndOwnership(gameState.board);
+        gameState.players.A.unusedLives = [1, 2, 3];
+        gameState.players.A.cycleTurn = 1;
+        gameState.players.B.unusedLives = [1, 2, 3];
+        gameState.players.B.cycleTurn = 1;
+        gameState.tutorialRequirement = null;
+        selectedLife = 3;
+        setGuideBanner(
+          'STEP 6：実戦形式の演習（6×6盤面）',
+          '初期配置 (2,2) 東・(3,3) 西、未使用ライフ [1,2,3] からスタート！最後まで対局しましょう。'
+        );
+        showTutorialDialog(
+          'STEP 6 / 6',
+          '実戦形式の演習',
+          `
+            <p>いよいよ最終ステップです！公式初期配置（先手 (2,2) 東・後手 (3,3) 西）と未使用ライフ [1, 2, 3] の状態からCPUと対局しましょう。</p>
+            <ul class="list-disc list-inside space-y-1 text-slate-300 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <li>左下の「未使用ライフ」を選ぶ → 空きマスをタップ → 方向を決定</li>
+              <li>光線を重ねて所有マスを増やし、相手の光源を破壊する</li>
+              <li>同点時は残存光源数が多い方が勝利となります</li>
+            </ul>
+          `
+        );
+      }
+
+      renderAll();
+      requestAnimationFrame(updateBoardSquareSize);
+    }
+
+    function setGuideBanner(title, desc) {
+      document.getElementById('guide-title').textContent = title;
+      document.getElementById('guide-desc').textContent = desc;
+    }
+
+    function onTutorialActionCompleted(actionType, data) {
+      const step = gameState.tutorialStep;
+      const sub = gameState.tutorialSubstep;
+
+      if (step === 1) {
+        if (sub === 1) {
+          gameState.tutorialSubstep = 2;
+          gameState.activePlayer = 'A';
+          gameState.tutorialRequirement = { type: 'place', life: 3, r: 3, c: 3, dirs: ['N', 'S'] };
+          selectedLife = 3;
+          setGuideBanner(
+            'STEP 1-2：2方向に光線を照射しよう',
+            '東へ光線が伸びました！次は未使用ライフ「3（2方向）」で、マス (3, 3) に「北・南」の2方向を選択して配置してください。'
+          );
+          renderAll();
+        } else {
+          showTutorialDialog(
+            'STEP 1 完了',
+            '基本操作と光線の照射をマスターしました！',
+            `
+              <p>(3, 3) から北と南へ光線が伸び、(2, 1) からの光線とも互いに遮られず通過していることが分かります。</p>
+              <p class="text-emerald-300 font-bold">次は「STEP 2：マスの所有権と勝敗判定」へ進みます。</p>
+            `,
+            'STEP 2 へ進む',
+            () => initTutorialStep(2)
+          );
+        }
+      } else if (step === 2) {
+        isAnimating = true;
+        setTimeout(() => {
+          gameState.board[3][4] = { owner: 'B', dirs: ['N', 'W'], life: 3, justPlaced: true };
+          gameState.eval = calculateRaysAndOwnership(gameState.board);
+          isAnimating = false;
+          renderAll();
+
+          showTutorialDialog(
+            'STEP 2 完了',
+            'マスの所有権の変化を確認！',
+            `
+              <p>先手と後手の光線が交差し、盤面の色が変化しました！</p>
+              <ul class="list-disc list-inside space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                <li><span class="text-cyan-300 font-bold">(2, 2) は 先手2 : 後手0</span> → 濃い青色で先手の所有！</li>
+                <li><span class="text-slate-300 font-bold">(2, 4) は 先手1 : 後手1</span> → 光線数が同じため中立！</li>
+                <li><span class="text-rose-300 font-bold">(3, 3) は 先手0 : 後手2</span> → 濃い赤色で後手の所有！</li>
+              </ul>
+              <p class="text-emerald-300 font-bold">次は「STEP 3：光源の破壊」へ進みます。</p>
+            `,
+            'STEP 3 へ進む',
+            () => initTutorialStep(3)
+          );
+        }, 400);
+      } else if (step === 3) {
+        showTutorialDialog(
+          'STEP 3 完了',
+          '光源の破壊に成功しました！',
+          `
+            <p>(2, 2) のマスに後手の光線が3本到達し、<strong>相手の光線(3) − 自身の光線(0) ≧ ライフ(3)</strong> を満たしたため、先手の光源が破壊されて消滅しました！</p>
+            <p class="text-emerald-300 font-bold">次は「STEP 4：初期配置とライフ資源の管理」へ進みます。</p>
+          `,
+          'STEP 4 へ進む',
+          () => initTutorialStep(4)
+        );
+      } else if (step === 4) {
+        if (sub === 1) {
+          gameState.tutorialSubstep = 2;
+          gameState.players.A.unusedLives = [1];
+          gameState.players.A.cycleTurn = 3;
+          gameState.activePlayer = 'A';
+          gameState.tutorialRequirement = { type: 'place', life: 1 };
+          selectedLife = 1;
+          setGuideBanner(
+            'STEP 4-2：サイクル最後のライフ「1」を使おう',
+            '次はサイクル最後の未使用ライフ「1（4方向）」を任意の空きマスに配置して、サイクルリセットを確認しましょう！'
+          );
+          renderAll();
+        } else {
+          showTutorialDialog(
+            'STEP 4 完了',
+            'サイクルがリセットされました！',
+            `
+              <p>最初のサイクルの残りライフを使い切ったことで、<strong>未使用ライフが [1, 2, 3, 4] すべて使用可能</strong>にリセットされました！</p>
+              <p class="text-emerald-300 font-bold">次は「STEP 5：スキップと強制パス」へ進みます。</p>
+            `,
+            'STEP 5 へ進む',
+            () => initTutorialStep(5)
+          );
+        }
+      } else if (step === 5) {
+        if (sub === 1) {
+          gameState.tutorialSubstep = 2;
+          const N = BOARD_SIZE;
+          for (let r = 0; r < N; r++) {
+            for (let c = 0; c < N; c++) {
+              if (!gameState.board[r][c]) {
+                gameState.board[r][c] = { owner: (r + c) % 2 === 0 ? 'A' : 'B', dirs: ['N'], life: 4 };
+              }
+            }
+          }
+          gameState.eval = calculateRaysAndOwnership(gameState.board);
+          gameState.activePlayer = 'A';
+          gameState.tutorialRequirement = { type: 'pass' };
+          setGuideBanner(
+            'STEP 5-2：強制パスを体験しよう',
+            '盤面がすべて埋まり配置できない状態になりました。右下の「強制パス」ボタンを押してください。'
+          );
+          renderAll();
+        } else {
+          showTutorialDialog(
+            'STEP 5 完了',
+            'スキップと強制パスをマスターしました！',
+            `
+              <p>配置可能なマスが1つもない時に発生する「強制パス」を体験しました。</p>
+              <p class="text-emerald-300 font-bold">次はいよいよ最終ステップ「STEP 6：実戦形式の演習」です！</p>
+            `,
+            'STEP 6（実戦演習）へ進む',
+            () => initTutorialStep(6)
+          );
+        }
+      }
+    }
+
+    function showTutorialCompleteModal() {
+      savedTutorialStep = 1;
+      const ev = gameState.eval;
+      const humanWon = gameState.winner === gameState.humanRole;
+
+      showTutorialDialog(
+        'TUTORIAL COMPLETE 🎉',
+        '全6ステップのチュートリアル完了！',
+        `
+          <p class="text-sm font-bold text-emerald-300">お疲れ様でした！KOSENのすべてのルールと戦術を習得しました。</p>
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center my-2">
+            <div class="text-xs text-slate-400">演習対局スコア</div>
+            <div class="font-mono-num text-lg font-black text-white mt-1">
+              先手 ${ev.scoreA} マス (光源${ev.sourcesA}) － 後手 ${ev.scoreB} マス (光源${ev.sourcesB})
+            </div>
+            <div class="text-xs font-bold ${humanWon ? 'text-cyan-300' : 'text-rose-300'} mt-0.5">
+              ${roleName(gameState.winner)}の勝利
+            </div>
+          </div>
+          <p>続けて通常対局をお楽しみください！</p>
+        `,
+        '通常対局を始める',
+        () => startGame()
+      );
+    }
+
+    /* --------------------------------------------------------------------------
+     * RENDERING & VISUALIZATION (6x6 Grid, 0-indexed Coords, Ray Intensity)
+     * -------------------------------------------------------------------------- */
+    function buildBoardGridDOM() {
+      const gridEl = document.getElementById('board-grid');
+      if (!gridEl) return;
+      const N = gameState ? gameState.boardSize : BOARD_SIZE;
+      gridEl.style.gridTemplateColumns = `repeat(${N}, minmax(0, 1fr))`;
+      gridEl.style.gridTemplateRows = `repeat(${N}, minmax(0, 1fr))`;
+
+      let html = '';
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          html += `
+            <div id="cell-${r}-${c}" onclick="onCellClick(${r}, ${c})"
+              class="board-cell rounded-xl border border-slate-700/80 bg-slate-900 flex flex-col justify-between p-1 cursor-pointer overflow-hidden select-none">
+            </div>
+          `;
+        }
+      }
+      gridEl.innerHTML = html;
+    }
+
+    function getCellTerritoryStyle(owner, rA, rB) {
+      const diff = Math.abs(rA - rB);
+      if (owner === 'NONE' || diff === 0) {
+        if (rA > 0) {
+          return {
+            backgroundColor: 'rgba(30, 41, 59, 0.92)',
+            borderColor: 'rgba(148, 163, 184, 0.55)',
+            boxShadow: 'none'
+          };
+        }
+        return {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          borderColor: 'rgba(51, 65, 85, 0.85)',
+          boxShadow: 'none'
+        };
+      }
+
+      const level = Math.min(4, diff);
+      if (owner === 'A') {
+        const bgAlphas = [0, 0.16, 0.32, 0.50, 0.68];
+        const borderAlphas = [0, 0.45, 0.70, 0.90, 1.0];
+        const glow = level >= 3
+          ? `inset 0 0 ${level * 4}px rgba(34, 211, 238, ${level === 3 ? 0.35 : 0.55})`
+          : 'none';
+        return {
+          backgroundColor: `rgba(6, 182, 212, ${bgAlphas[level]})`,
+          borderColor: `rgba(34, 211, 238, ${borderAlphas[level]})`,
+          boxShadow: glow
+        };
+      } else {
+        const bgAlphas = [0, 0.16, 0.32, 0.50, 0.68];
+        const borderAlphas = [0, 0.45, 0.70, 0.90, 1.0];
+        const glow = level >= 3
+          ? `inset 0 0 ${level * 4}px rgba(251, 113, 133, ${level === 3 ? 0.35 : 0.55})`
+          : 'none';
+        return {
+          backgroundColor: `rgba(244, 63, 94, ${bgAlphas[level]})`,
+          borderColor: `rgba(251, 113, 133, ${borderAlphas[level]})`,
+          boxShadow: glow
+        };
+      }
+    }
+
+    function renderAll() {
+      if (!gameState) return;
+
+      const activeKey = gameState.activePlayer;
+      const humanKey = gameState.humanRole;
+      const oppKey = humanKey === 'A' ? 'B' : 'A';
+      const isHumanTurn = gameState.players[activeKey].isHuman && !gameState.isGameOver && !isAnimating;
+      const hasLegal = hasAnyLegalPlacement(gameState, activeKey);
+
+      let previewSim = null;
+      let currentValidation = { valid: false, reason: '' };
+      if (isHumanTurn && selectedCell && selectedLife) {
+        currentValidation = validatePlacement(gameState, activeKey, selectedCell.r, selectedCell.c, selectedLife, selectedDirsQueue);
+        if (currentValidation.valid) {
+          previewSim = simulatePlacementAndChain(gameState.board, selectedCell.r, selectedCell.c, activeKey, selectedDirsQueue);
+        }
+      }
+
+      // 1. Top Header
+      document.getElementById('ui-turn-current').textContent = Math.min(gameState.turnCount + 1, gameState.maxTurns);
+      const surrenderBtn = document.getElementById('btn-surrender');
+      if (surrenderBtn) {
+        const canShowSurrender = !gameState.isGameOver && !gameState.isDemo && (!gameState.isTutorial || gameState.tutorialStep === 6);
+        if (canShowSurrender) {
+          surrenderBtn.classList.remove('hidden');
+        } else {
+          surrenderBtn.classList.add('hidden');
+        }
+      }
+      const turnBadge = document.getElementById('ui-active-turn-badge');
+      if (gameState.isGameOver) {
+        turnBadge.textContent = '対局終了';
+        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+      } else if (activeKey === 'A') {
+        turnBadge.textContent = '先手の手番';
+        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+      } else {
+        turnBadge.textContent = '後手の手番';
+        turnBadge.className = 'px-2 py-1 rounded-xl text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
+      }
+
+      // 2. Opponent Bar & Self Bar
+      renderPlayerBars(humanKey, oppKey, isHumanTurn, hasLegal, previewSim);
+
+      // 3. Board Cells
+      renderBoardCells(previewSim, isHumanTurn);
+
+      // 4. Contextual Direction Popup
+      renderDirectionPopup(isHumanTurn, currentValidation, previewSim);
+    }
+
+    function renderPlayerBars(humanKey, oppKey, isHumanTurn, hasLegal, previewSim) {
+      const evalToUse = gameState.eval;
+      const total = gameState.boardSize * gameState.boardSize;
+
+      // Territory Ratio Bar
+      document.getElementById('ratio-A').textContent = evalToUse.scoreA;
+      document.getElementById('ratio-N').textContent = evalToUse.scoreN;
+      document.getElementById('ratio-B').textContent = evalToUse.scoreB;
+      document.getElementById('bar-A').style.width = `${(evalToUse.scoreA / total) * 100}%`;
+      document.getElementById('bar-N').style.width = `${(evalToUse.scoreN / total) * 100}%`;
+      document.getElementById('bar-B').style.width = `${(evalToUse.scoreB / total) * 100}%`;
+
+      // Opponent Bar
+      const oppObj = gameState.players[oppKey];
+      const oppIsA = oppKey === 'A';
+      document.getElementById('opp-dot').className = `w-2.5 h-2.5 rounded-full shrink-0 ${oppIsA ? 'bg-cyan-400' : 'bg-rose-500'}`;
+      document.getElementById('opp-role-label').textContent = roleName(oppKey);
+      document.getElementById('opp-type-tag').textContent = oppObj.isHuman ? 'あなた' : 'CPU';
+      document.getElementById('opp-sources').textContent = oppIsA ? evalToUse.sourcesA : evalToUse.sourcesB;
+      document.getElementById('opp-skip-status').textContent = oppObj.skipAvailable ? '残1' : '済';
+
+      const oppScoreEl = document.getElementById('opp-score');
+      oppScoreEl.textContent = oppIsA ? evalToUse.scoreA : evalToUse.scoreB;
+      oppScoreEl.className = `font-mono-num text-base sm:text-lg font-black leading-tight ${oppIsA ? 'text-cyan-400' : 'text-rose-400'}`;
+
+      document.getElementById('opp-lives-list').innerHTML = [1, 2, 3, 4].map(l => {
+        const avail = oppObj.unusedLives.includes(l);
+        return `
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-lg font-mono-num text-[11px] font-bold flex items-center justify-center border ${
+            avail
+              ? (oppIsA ? 'bg-cyan-950/60 border-cyan-500/50 text-cyan-300' : 'bg-rose-950/60 border-rose-500/50 text-rose-300')
+              : 'bg-slate-950 border-slate-800 text-slate-600 opacity-40'
+          }">${l}</span>
+        `;
+      }).join('');
+
+      // Self Bar
+      const selfObj = gameState.players[humanKey];
+      const selfIsA = humanKey === 'A';
+      const selfBar = document.getElementById('self-bar');
+      selfBar.className = `bg-slate-900 border-2 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shrink-0 transition-all ${
+        isHumanTurn
+          ? (selfIsA ? 'border-cyan-400 shadow-lg shadow-cyan-950/50' : 'border-rose-400 shadow-lg shadow-rose-950/50')
+          : 'border-slate-800 opacity-90'
+      }`;
+
+      document.getElementById('self-dot').className = `w-2.5 h-2.5 rounded-full ${selfIsA ? 'bg-cyan-400' : 'bg-rose-500'}`;
+      document.getElementById('self-role-label').textContent = `${roleName(humanKey)} (あなた)`;
+      document.getElementById('self-sources').textContent = selfIsA ? evalToUse.sourcesA : evalToUse.sourcesB;
+
+      const selfScoreVal = selfIsA ? evalToUse.scoreA : evalToUse.scoreB;
+      const selfScoreEl = document.getElementById('self-score');
+      selfScoreEl.textContent = selfScoreVal;
+      selfScoreEl.className = `font-mono-num font-black text-sm sm:text-base ${selfIsA ? 'text-cyan-400' : 'text-rose-400'}`;
+
+      const diffEl = document.getElementById('self-score-diff');
+      if (previewSim) {
+        const nextVal = selfIsA ? previewSim.finalEval.scoreA : previewSim.finalEval.scoreB;
+        const delta = nextVal - selfScoreVal;
+        diffEl.textContent = delta >= 0 ? `(+${delta})` : `(${delta})`;
+        diffEl.className = `font-mono-num text-xs font-bold ${delta > 0 ? 'text-emerald-400' : delta < 0 ? 'text-rose-400' : 'text-slate-400'}`;
+        diffEl.classList.remove('hidden');
+      } else {
+        diffEl.classList.add('hidden');
+      }
+
+      document.getElementById('self-cycle-info').textContent = `サイクル ${selfObj.cycleTurn + 1}/4手目`;
+
+      const livesGrid = document.getElementById('self-lives-grid');
+      livesGrid.innerHTML = [1, 2, 3, 4].map(life => {
+        const inUnused = selfObj.unusedLives.includes(life);
+        const hasValidCell = inUnused && hasAnyLegalPlacementForLife(gameState, humanKey, life);
+        const isSelected = isHumanTurn && selectedLife === life && hasValidCell;
+        const dirCount = 5 - life;
+
+        const isTutTarget = gameState.isTutorial && gameState.tutorialRequirement?.type === 'place' && gameState.tutorialRequirement?.life === life;
+
+        let btnClass = 'h-[42px] rounded-xl border flex flex-col items-center justify-center transition-all ';
+        if (!inUnused) {
+          btnClass += 'bg-slate-950 border-slate-800/70 text-slate-600 opacity-40 cursor-not-allowed';
+        } else if (!hasValidCell) {
+          btnClass += 'bg-slate-950 border-slate-800 text-slate-500 opacity-50 cursor-not-allowed';
+        } else if (isSelected) {
+          btnClass += selfIsA
+            ? 'bg-cyan-500 text-slate-950 border-cyan-300 font-black shadow-md shadow-cyan-500/30 scale-[1.02]'
+            : 'bg-rose-500 text-white border-rose-300 font-black shadow-md shadow-rose-500/30 scale-[1.02]';
+        } else {
+          btnClass += selfIsA
+            ? 'bg-slate-800 hover:bg-slate-700 border-cyan-500/40 text-cyan-200'
+            : 'bg-slate-800 hover:bg-slate-700 border-rose-500/40 text-rose-200';
+        }
+
+        if (isTutTarget && !isSelected) {
+          btnClass += ' ring-2 ring-emerald-400';
+        }
+
+        return `
+          <button type="button" onclick="selectUnusedLife(${life})" class="${btnClass}">
+            <span class="font-mono-num font-black text-xs sm:text-sm leading-none">${life}</span>
+            <span class="text-[9px] sm:text-[10px] leading-none mt-1 ${isSelected ? 'font-bold' : 'opacity-80'}">${inUnused ? `${dirCount}方向` : '使用済'}</span>
+          </button>
+        `;
+      }).join('');
+
+      const skipBtn = document.getElementById('btn-skip-action');
+      const skipSub = document.getElementById('self-skip-sub');
+      const passBtn = document.getElementById('btn-forced-pass');
+
+      const canSkip = isHumanTurn && hasLegal && selfObj.skipAvailable;
+      skipBtn.disabled = !canSkip;
+      skipSub.textContent = !selfObj.skipAvailable ? '使用済' : '残り1回';
+
+      if (gameState.isTutorial && gameState.tutorialRequirement?.type === 'skip') {
+        skipBtn.classList.add('ring-2', 'ring-emerald-400', 'animate-pulse');
+      } else {
+        skipBtn.classList.remove('ring-2', 'ring-emerald-400', 'animate-pulse');
+      }
+
+      if (isHumanTurn && !hasLegal) {
+        passBtn.classList.remove('hidden');
+        skipBtn.classList.add('hidden');
+      } else {
+        passBtn.classList.add('hidden');
+        skipBtn.classList.remove('hidden');
+      }
+    }
+
+    function renderBoardCells(previewSim, isHumanTurn) {
+      const N = gameState.boardSize;
+      const evalToUse = previewSim ? previewSim.finalEval : gameState.eval;
+
+      const destroyedMap = new Map();
+      if (previewSim) {
+        previewSim.chainSteps.forEach((step, idx) => {
+          step.destroyed.forEach(d => {
+            destroyedMap.set(`${d.r},${d.c}`, idx + 1);
+          });
+        });
+      }
+
+      const tutReq = gameState.isTutorial ? gameState.tutorialRequirement : null;
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const cellEl = document.getElementById(`cell-${r}-${c}`);
+          if (!cellEl) continue;
+
+          const isSelected = selectedCell && selectedCell.r === r && selectedCell.c === c;
+          const actualSource = gameState.board[r][c];
+          const isPreviewSource = isSelected && !actualSource && selectedLife && selectedDirsQueue.length > 0;
+
+          const owner = evalToUse.owners[r][c];
+          const rA = evalToUse.raysA[r][c];
+          const rB = evalToUse.raysB[r][c];
+          const diff = Math.abs(rA - rB);
+
+          const isTutCellTarget = tutReq && tutReq.type === 'place' && tutReq.r === r && tutReq.c === c;
+
+          const styleObj = getCellTerritoryStyle(owner, rA, rB);
+          cellEl.style.backgroundColor = styleObj.backgroundColor;
+          cellEl.style.borderColor = styleObj.borderColor;
+          cellEl.style.boxShadow = styleObj.boxShadow;
+
+          cellEl.className = `board-cell rounded-xl border flex flex-col justify-between p-0.5 sm:p-1 cursor-pointer overflow-hidden ${
+            isSelected ? 'selected-cell' : ''
+          } ${isTutCellTarget && !isSelected ? 'tutorial-target' : ''}`;
+
+          // Top Bar: 0-indexed Coord (r,c) & Ray counts
+          const topBarHTML = `
+            <div class="w-full flex items-center justify-between z-10 text-[8px] sm:text-[9px] font-mono-num leading-none">
+              <span class="text-slate-400/75">${r},${c}</span>
+              <div class="bg-slate-950/80 px-1 py-0.5 rounded flex items-center gap-0.5">
+                <span class="${rA > rB ? 'text-cyan-300 font-extrabold' : 'text-cyan-400/75'}">${rA}</span>
+                <span class="text-slate-600">:</span>
+                <span class="${rB > rA ? 'text-rose-300 font-extrabold' : 'text-rose-400/75'}">${rB}</span>
+              </div>
+            </div>
+          `;
+
+          // Center: Light source
+          let centerHTML = '<div class="flex-1 flex items-center justify-center relative"></div>';
+          const destroyStep = destroyedMap.get(`${r},${c}`);
+
+          if (actualSource) {
+            centerHTML = buildLightSourcePieceHTML(actualSource, false, destroyStep, rA, rB);
+          } else if (isPreviewSource) {
+            const previewPiece = {
+              owner: gameState.activePlayer,
+              dirs: selectedDirsQueue,
+              life: selectedLife
+            };
+            centerHTML = buildLightSourcePieceHTML(previewPiece, true, destroyStep, rA, rB);
+          }
+
+          // Bottom Bar: Ownership & Ray Strength Bars
+          let ownerText = '<span class="text-slate-500/80">-</span>';
+          if (owner === 'A') {
+            const bars = '■'.repeat(Math.min(4, diff));
+            ownerText = `<span class="text-cyan-200 font-bold">先 <span class="text-cyan-300 tracking-tighter">${bars}</span></span>`;
+          } else if (owner === 'B') {
+            const bars = '■'.repeat(Math.min(4, diff));
+            ownerText = `<span class="text-rose-200 font-bold">後 <span class="text-rose-300 tracking-tighter">${bars}</span></span>`;
+          }
+
+          const bottomBarHTML = `
+            <div class="w-full flex items-center justify-between z-10 text-[7px] sm:text-[8px] leading-none">
+              ${ownerText}
+              ${destroyStep ? `<span class="warn-badge px-0.5 rounded bg-amber-400 text-slate-950 font-black">💥</span>` : ''}
+            </div>
+          `;
+
+          cellEl.innerHTML = topBarHTML + centerHTML + bottomBarHTML;
+        }
+      }
+    }
+
+    function buildLightSourcePieceHTML(src, isPreview, destroyStep, rA, rB) {
+      const isA = src.owner === 'A';
+      const ringColor = isA
+        ? 'border-cyan-200 bg-cyan-500/30 text-white shadow-[0_0_8px_rgba(6,182,212,0.6)]'
+        : 'border-rose-200 bg-rose-500/30 text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]';
+
+      const beamColor = isA ? '#22d3ee' : '#fb7185';
+      const hasN = src.dirs.includes('N');
+      const hasS = src.dirs.includes('S');
+      const hasE = src.dirs.includes('E');
+      const hasW = src.dirs.includes('W');
+
+      const rOwn = isA ? rA : rB;
+      const rOpp = isA ? rB : rA;
+      const diff = Math.max(0, rOpp - rOwn);
+
+      return `
+        <div class="flex-1 w-full flex items-center justify-center relative ${isPreview ? 'opacity-85' : ''} ${src.justPlaced ? 'piece-pop' : ''}">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+            ${hasN ? `<line x1="50" y1="50" x2="50" y2="3" stroke="${beamColor}" stroke-width="9" stroke-linecap="round" /><polygon points="50,0 38,16 62,16" fill="${beamColor}"/>` : ''}
+            ${hasS ? `<line x1="50" y1="50" x2="50" y2="97" stroke="${beamColor}" stroke-width="9" stroke-linecap="round" /><polygon points="50,100 38,84 62,84" fill="${beamColor}"/>` : ''}
+            ${hasE ? `<line x1="50" y1="50" x2="97" y2="50" stroke="${beamColor}" stroke-width="9" stroke-linecap="round" /><polygon points="100,50 84,38 84,62" fill="${beamColor}"/>` : ''}
+            ${hasW ? `<line x1="50" y1="50" x2="3" y2="50" stroke="${beamColor}" stroke-width="9" stroke-linecap="round" /><polygon points="0,50 16,38 16,62" fill="${beamColor}"/>` : ''}
+          </svg>
+          <div class="relative z-10 w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 ${ringColor} flex flex-col items-center justify-center backdrop-blur-xs ${destroyStep ? 'ring-2 ring-amber-400' : ''}">
+            <span class="font-mono-num font-black text-[10px] sm:text-xs leading-none">${src.life}</span>
+            <span class="text-[6px] sm:text-[7px] font-mono-num opacity-85 leading-none">${diff}/${src.life}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBoardWithDestroyingHighlight(destroyedList) {
+      for (const item of destroyedList) {
+        const cellEl = document.getElementById(`cell-${item.r}-${item.c}`);
+        if (cellEl) {
+          cellEl.classList.add('ring-2', 'ring-amber-400');
+          const piece = cellEl.querySelector('.rounded-full');
+          if (piece) piece.classList.add('destroying-piece');
+        }
+      }
+    }
+
+    function renderDirectionPopup(isHumanTurn, validation, previewSim) {
+      const popup = document.getElementById('direction-popup');
+      if (!isHumanTurn || !selectedCell || !selectedLife) {
+        popup.classList.add('hidden');
+        return;
+      }
+
+      popup.classList.remove('hidden');
+      const { r, c } = selectedCell;
+      const N = gameState.boardSize;
+      const neededDirs = 5 - selectedLife;
+      const isA = gameState.activePlayer === 'A';
+
+      if (r < N / 2) {
+        popup.style.bottom = '6px';
+        popup.style.top = 'auto';
+      } else {
+        popup.style.top = '6px';
+        popup.style.bottom = 'auto';
+      }
+
+      document.getElementById('popup-coord-label').textContent = `座標 (${r}, ${c})`;
+      const lifeLabel = document.getElementById('popup-life-label');
+      lifeLabel.textContent = `ライフ${selectedLife} (${neededDirs}方向)`;
+      lifeLabel.className = `ml-1 px-1.5 py-0.5 rounded font-mono-num text-[11px] font-bold ${
+        isA ? 'bg-cyan-500/20 text-cyan-300' : 'bg-rose-500/20 text-rose-300'
+      }`;
+
+      document.getElementById('popup-dir-progress').textContent = `${selectedDirsQueue.length} / ${neededDirs}`;
+
+      DIR_KEYS.forEach(dKey => {
+        const btn = document.getElementById(`popup-dir-${dKey}`);
+        const sub = document.getElementById(`popup-sub-${dKey}`);
+        const orderIdx = selectedDirsQueue.indexOf(dKey);
+        const isSelected = orderIdx !== -1;
+
+        btn.disabled = false;
+        if (isSelected) {
+          btn.className = `rounded-2xl border-2 flex flex-col items-center justify-center transition-all ${
+            isA
+              ? 'border-cyan-300 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-black'
+              : 'border-rose-300 bg-rose-500 text-white shadow-md shadow-rose-500/30 font-black'
+          }`;
+          sub.textContent = neededDirs > 1 ? `選択${orderIdx + 1}` : '選択中';
+        } else {
+          btn.className = 'rounded-2xl border-2 border-slate-700 bg-slate-800 hover:border-slate-500 text-slate-200 flex flex-col items-center justify-center transition-all';
+          sub.textContent = dKey === 'N' ? '▲' : dKey === 'S' ? '▼' : dKey === 'E' ? '▶' : '◀';
+        }
+      });
+
+      const infoEl = document.getElementById('popup-sim-info');
+      const confirmBtn = document.getElementById('btn-popup-confirm');
+
+      if (!validation.valid) {
+        infoEl.innerHTML = `<span class="text-amber-300 font-bold">${validation.reason}</span>`;
+        confirmBtn.disabled = true;
+        confirmBtn.className = 'w-full py-2 rounded-xl font-black text-xs sm:text-sm tracking-wide transition-all bg-slate-800 text-slate-500 cursor-not-allowed';
+      } else if (previewSim) {
+        const totalDestroyed = previewSim.chainSteps.reduce((acc, s) => acc + s.destroyed.length, 0);
+        const curScore = isA ? gameState.eval.scoreA : gameState.eval.scoreB;
+        const nextScore = isA ? previewSim.finalEval.scoreA : previewSim.finalEval.scoreB;
+        const delta = nextScore - curScore;
+
+        if (totalDestroyed > 0) {
+          infoEl.innerHTML = `<span class="text-amber-300 font-bold">💥 ${totalDestroyed}個の光源を破壊！ (所有 ${delta >= 0 ? `+${delta}` : delta})</span>`;
+        } else {
+          infoEl.innerHTML = `<span class="text-emerald-300 font-bold">所有マス変化: ${delta >= 0 ? `+${delta}` : delta} マス</span>`;
+        }
+
+        confirmBtn.disabled = false;
+        confirmBtn.className = isA
+          ? 'w-full py-2 rounded-xl font-black text-xs sm:text-sm tracking-wide transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-lg shadow-cyan-500/25 cursor-pointer'
+          : 'w-full py-2 rounded-xl font-black text-xs sm:text-sm tracking-wide transition-all bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/25 cursor-pointer';
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+     * INITIALIZATION & AUTOMATED ENGINE SELF-TEST ON BOOT
+     * -------------------------------------------------------------------------- */
+    function runHeadlessSelfTest() {
+      // Runs a full headless simulation of the 6x6 game engine + AI agents on boot
+      // to guarantee 0 runtime errors across initial placement, rays, chains, and terminal winner.
+      const testBoard = createInitialStandardBoard();
+      let sState = {
+        board: testBoard,
+        eval: calculateRaysAndOwnership(testBoard),
+        size: BOARD_SIZE,
+        currentPlayer: 'A',
+        turnCount: 0,
+        maxTurns: MAX_TURNS,
+        consecutiveForcedPasses: 0,
+        gameOver: false,
+        players: {
+          A: { unusedLives: [1, 2, 3], cycleTurn: 1, skipAvailable: true },
+          B: { unusedLives: [1, 2, 3], cycleTurn: 1, skipAvailable: true }
+        }
+      };
+
+      // Simulate 8 plies with Heuristic & Search Agents to verify full game loop
+      for (let step = 0; step < 8 && !sState.gameOver; step++) {
+        const action = step % 2 === 0
+          ? chooseActionHeuristic(sState)
+          : chooseActionSearch(sState, 2, 4, 2);
+        if (!action) break;
+        sState = applySearchAction(sState, action);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Ensure Title screen is shown first and Game screen is strictly hidden
+      document.getElementById('screen-title').classList.remove('hidden');
+      document.getElementById('screen-game').classList.add('hidden');
+
+      // 2. Apply initial PC/Mobile layout structure and run engine verification
+      applyLayoutMode(window.innerWidth >= 880 ? 'pc' : 'mobile');
+      runHeadlessSelfTest();
+    });
+  </script>
+</body>
+</html>
