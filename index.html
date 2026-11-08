@@ -2,208 +2,336 @@
 <html lang="ja" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>KOSEN</title>
+  <meta name="theme-color" content="#090b10" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', 'Noto Sans JP', sans-serif;
-      background-color: #090d16;
-      color: #f1f5f9;
-      overflow: hidden;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
+    :root{--bg:#090b10;--s1:#10131a;--s2:#161a23;--s3:#1d222d;--ln:#232937;--ln2:#323a4c;--tx:#e8ebf2;--mu:#8a93a8;--dm:#5b6479;--a:#3ee0ff;--b:#ff5c7a;--y:#ffd54a;--sh:#000;--ov:rgba(5,6,10,.78);--gA:rgba(62,224,255,.08);--gB:rgba(255,92,122,.07);--ease:cubic-bezier(.22,1,.36,1)}
+    html[data-theme="light"]{--bg:#f3f4f8;--s1:#fff;--s2:#f2f4f8;--s3:#e7ebf2;--ln:#d9dfea;--ln2:#b9c3d6;--tx:#131720;--mu:#4d576b;--dm:#6b7589;--a:#0891b2;--b:#e11d48;--y:#d99a00;--sh:rgba(30,41,59,.3);--ov:rgba(20,24,35,.45);--gA:rgba(8,145,178,.08);--gB:rgba(225,29,72,.06);color-scheme:light}
+    *{-webkit-tap-highlight-color:transparent}
+    html,body{background:var(--bg)}
+    body{font-family:'Inter','Noto Sans JP',sans-serif;color:var(--tx);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-font-smoothing:antialiased;
+      background:radial-gradient(700px 420px at 50% -10%,var(--gA),transparent 70%),radial-gradient(600px 400px at 50% 115%,var(--gB),transparent 70%),var(--bg)!important}
+    .hidden{display:none!important}
+    .font-mono-num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+    button{font:inherit;cursor:pointer;transition:background-color .16s var(--ease),border-color .16s var(--ease),transform .16s var(--ease),opacity .16s,box-shadow .16s var(--ease),color .16s}
+    button:disabled{cursor:not-allowed}
+    button:not(:disabled):active{transform:scale(.96)}
+    button:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--ln2);border-radius:2px}::-webkit-scrollbar-track{background:transparent}
 
-    /* Ensure .hidden ALWAYS wins regardless of ID specificity */
-    .hidden {
-      display: none !important;
-    }
+    /* ---- primitives ---- */
+    .k-card{background:var(--s1);border:1px solid var(--ln);border-radius:16px}
+    .k-eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dm)}
+    .k-ghost{height:32px;padding:0 11px;border-radius:10px;background:transparent;border:1px solid var(--ln);color:var(--mu);font-size:11px;font-weight:700;white-space:nowrap}
+    .k-ghost:hover{background:var(--s2);color:var(--tx);border-color:var(--ln2)}
+    .k-primary{background:var(--tx);color:var(--bg);font-weight:800;border-radius:14px}
+    .k-primary:hover{filter:brightness(1.12)}
+    .k-secondary{background:transparent;border:1px solid var(--ln2);color:var(--tx);font-weight:700;border-radius:14px}
+    .k-secondary:hover{background:var(--s2)}
 
-    .font-mono-num {
-      font-family: 'JetBrains Mono', monospace;
-    }
+    /* ---- title ---- */
+    #screen-title{background:transparent}
+    .k-title-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;gap:28px}
+    .k-mark{display:grid;grid-template-columns:repeat(3,14px);gap:3px}
+    .k-mark i{display:block;width:14px;height:14px;border-radius:4px;background:var(--s3)}
+    .k-mark i.a{background:rgba(62,224,255,.85);box-shadow:0 0 14px rgba(62,224,255,.6)}
+    .k-mark i.a2{background:rgba(62,224,255,.3)}
+    .k-mark i.b{background:rgba(255,92,122,.85);box-shadow:0 0 14px rgba(255,92,122,.55)}
+    .k-word{font-size:clamp(48px,14vw,68px);font-weight:900;letter-spacing:.06em;line-height:.9;color:var(--tx)}
+    #screen-title label{display:block;margin-bottom:8px}
+    .k-seg{display:grid;gap:4px;padding:4px;background:var(--s1);border:1px solid var(--ln);border-radius:14px}
+    .k-seg button{padding:11px 0!important;border:1px solid transparent!important;border-radius:10px!important;background:transparent!important;color:var(--mu)!important;font-size:13px!important;font-weight:700!important;box-shadow:none}
+    .k-seg button:hover{color:var(--tx)!important}
+    .k-seg button[class*="bg-cyan-500/15"]{background:var(--s3)!important;color:var(--tx)!important;border-color:var(--ln2)!important;box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 4px 12px -6px var(--sh)}
+    #btn-start{height:56px;font-size:15px;letter-spacing:.16em}
+    #btn-tut{height:48px;font-size:13px}
+    #btn-lang-ja,#btn-lang-en{padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700;color:var(--dm);background:transparent}
+    #btn-lang-ja[class*="bg-cyan-500"],#btn-lang-en[class*="bg-cyan-500"]{background:var(--s3);color:var(--tx)}
 
-    .text-glow-a {
-      text-shadow: 0 0 14px rgba(6, 182, 212, 0.65);
-    }
-    .text-glow-b {
-      text-shadow: 0 0 14px rgba(244, 63, 94, 0.65);
-    }
+    /* ---- game shell ---- */
+    #screen-game{background:transparent!important;padding-bottom:env(safe-area-inset-bottom)}
+    #game-header{padding:max(8px,env(safe-area-inset-top)) 12px 6px}
+    #game-header .k-bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    #btn-header-back{width:32px;height:32px;padding:0;display:grid;place-items:center}
+    #turn-counter-box{display:flex;align-items:baseline;gap:4px;background:none!important;border:0!important;padding:0!important;font-size:13px!important}
+    #turn-counter-box #lbl-turn-prefix{font-size:10px!important;letter-spacing:.14em;color:var(--dm)!important;margin:0 2px 0 0!important}
+    #ui-turn-current{font-size:18px;font-weight:800}
+    #ui-active-turn-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px!important;border-radius:999px!important;font-size:11px!important;font-weight:800!important;background:var(--s2)!important;border:1px solid var(--ln2)!important}
+    #ui-active-turn-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;animation:blink 1.6s infinite}
+    #ui-active-turn-badge[class*="cyan"]{color:var(--a)!important}#ui-active-turn-badge[class*="rose"]{color:var(--b)!important}
+    @keyframes blink{50%{opacity:.35}}
+    #btn-surrender{color:#ff8da1!important;border-color:rgba(255,92,122,.28)!important;background:transparent!important}
+    #btn-surrender:hover{background:rgba(255,92,122,.1)!important}
+    #btn-tutorial-steps{color:#6ee7b7!important;border-color:rgba(52,211,153,.35)!important;background:transparent!important;height:32px;border-radius:10px!important}
+    #game-workspace{padding-left:12px!important;padding-right:12px!important}
 
-    .board-cell {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      min-width: 0;
-      min-height: 0;
-      transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
-    }
-    .board-cell:active {
-      filter: brightness(1.25);
-    }
-    .board-cell.selected-cell {
-      outline: 2.5px solid #facc15;
-      box-shadow: 0 0 18px rgba(250, 204, 21, 0.55);
-      z-index: 20;
-    }
-    .board-cell.tutorial-target {
-      outline: 2.5px dashed #34d399;
-      box-shadow: 0 0 16px rgba(52, 211, 153, 0.5);
-      animation: targetPulse 1.3s infinite ease-in-out;
-      z-index: 15;
-    }
+    /* ---- board ---- */
+    #board-grid{background:var(--s1)!important;border:1px solid var(--ln)!important;border-radius:20px!important;padding:8px!important;gap:5px!important;box-shadow:0 40px 80px -40px var(--sh),0 0 0 1px rgba(255,255,255,.02) inset!important}
+    .board-cell{position:relative;width:100%;height:100%;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;border-radius:9px!important;border-width:1px!important;cursor:pointer;overflow:hidden}
+    @media(hover:hover){.board-cell:hover{border-color:rgba(232,235,242,.55)!important}}
+    .board-cell:active{filter:brightness(1.25)}
+    .board-cell.selected-cell{outline:2px solid var(--y);outline-offset:-2px;z-index:20;animation:sel 1.5s infinite ease-in-out}
+    @keyframes sel{0%,100%{box-shadow:0 0 0 0 rgba(255,213,74,.0),0 0 12px rgba(255,213,74,.35)}50%{box-shadow:0 0 0 3px rgba(255,213,74,.18),0 0 22px rgba(255,213,74,.6)}}
+    .board-cell.tutorial-target{outline:2px dashed #34d399;outline-offset:-2px;z-index:15;animation:tgt 1.3s infinite ease-in-out}
+    @keyframes tgt{0%,100%{box-shadow:0 0 8px rgba(52,211,153,.3)}50%{box-shadow:0 0 20px rgba(52,211,153,.8)}}
+    @keyframes destroyPulse{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.18);filter:brightness(2.2);box-shadow:0 0 28px var(--y)}100%{transform:scale(0);opacity:0}}
+    .destroying-piece{animation:destroyPulse .45s ease-in-out forwards}
+    @keyframes popIn{0%{transform:scale(.45);opacity:0}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1);opacity:1}}
+    .piece-pop{animation:popIn .22s cubic-bezier(.34,1.56,.64,1) forwards}
+    @keyframes warnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+    .warn-badge{letter-spacing:.04em;box-shadow:0 0 10px rgba(251,191,36,.7)}
+    [id^="piece-"]>div{box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 12px -2px currentColor}
 
-    /* セル本体は拡縮させない（セル内の文字が動かないように、光らせ方だけを変化させる） */
-    @keyframes targetPulse {
-      0%, 100% { box-shadow: 0 0 8px rgba(52, 211, 153, 0.35); }
-      50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.8); }
-    }
+    /* ---- direction popup ---- */
+    #direction-popup{background:rgba(16,19,26,.96)!important;backdrop-filter:blur(16px);border:1px solid var(--ln2)!important;border-radius:22px!important;padding:12px!important;box-shadow:0 30px 80px -20px var(--sh)!important;animation:rise .2s var(--ease) both}
+    @keyframes rise{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+    #direction-popup>div:first-child{border-color:var(--ln)!important;padding-bottom:8px!important}
+    #direction-popup button[id^="popup-dir-"]{border-radius:14px!important;border-width:1px!important}
+    #popup-sim-info{background:var(--s2)!important;border:1px solid var(--ln)!important;color:var(--mu)!important;font-size:11.5px!important;border-radius:10px!important}
+    #btn-popup-confirm{border-radius:12px!important;padding:11px 0!important;font-size:13px!important;letter-spacing:.08em}
+    #btn-popup-confirm:disabled{background:var(--s3)!important;color:var(--dm)!important;box-shadow:none!important}
 
-    @keyframes destroyPulse {
-      0% { transform: scale(1); filter: brightness(1); }
-      40% { transform: scale(1.18); filter: brightness(2.2); box-shadow: 0 0 28px #facc15; }
-      100% { transform: scale(0); opacity: 0; }
-    }
-    .destroying-piece {
-      animation: destroyPulse 0.45s ease-in-out forwards;
-    }
+    /* ---- player panels ---- */
+    .k-player{display:grid;grid-template-columns:1fr auto;grid-template-areas:"id score" "meta score";gap:6px 14px;padding:11px 14px;align-items:center}
+    .k-id{grid-area:id;display:flex;align-items:center;gap:8px;min-width:0}
+    .k-meta{grid-area:meta;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:var(--mu)}
+    .k-score{grid-area:score;text-align:right;padding-left:14px;border-left:1px solid var(--ln)}
+    .k-score .k-eyebrow{display:block;font-size:9px}
+    #opp-score,#self-score{font-size:30px!important;line-height:1!important;font-weight:800!important;margin-top:3px!important;letter-spacing:-.02em}
+    #self-score-diff{display:block;font-size:11px!important}
+    #opp-dot,#self-dot{width:8px!important;height:8px!important;box-shadow:0 0 10px currentColor}
+    #opp-dot[class*="cyan"],#self-dot[class*="cyan"]{color:var(--a)}#opp-dot[class*="rose"],#self-dot[class*="rose"]{color:var(--b)}
+    #opp-role-label,#self-role-label{font-size:13px!important;font-weight:800!important}
+    #opp-type-tag{font-size:9px!important;letter-spacing:.1em;background:var(--s3)!important;color:var(--mu)!important;border-radius:6px!important}
+    #opp-lives-list{gap:4px!important}
+    #opp-lives-list span{width:20px!important;height:20px!important;border-radius:6px!important;font-size:10px!important}
+    #self-bar{background:var(--s1);border:1px solid var(--ln)!important;border-radius:18px!important;padding:12px!important;display:flex;flex-direction:column;gap:12px;transition:border-color .25s,box-shadow .25s,opacity .25s}
+    #self-bar[class*="border-cyan-400"]{border-color:rgba(62,224,255,.55)!important;box-shadow:0 0 0 4px rgba(62,224,255,.06),0 20px 40px -24px rgba(62,224,255,.5)}
+    #self-bar[class*="border-rose-500"]{border-color:rgba(255,92,122,.55)!important;box-shadow:0 0 0 4px rgba(255,92,122,.06),0 20px 40px -24px rgba(255,92,122,.5)}
+    #self-lives-grid{gap:6px!important}
+    #self-lives-grid button{height:52px!important;border-radius:12px!important;border-width:1px!important}
+    #self-lives-grid button[class*="bg-slate-800"]{background:var(--s3)!important;border-color:var(--ln2)!important}
+    #self-lives-grid button[class*="bg-slate-800"]:hover{border-color:var(--tx)!important}
+    #self-lives-grid button[class*="bg-slate-950"]{background:transparent!important;border-style:dashed!important;border-color:var(--ln)!important}
+    #self-lives-grid button[class*="border-white"]{border-color:#fff!important}
+    #btn-skip-action{height:52px!important;border-radius:12px!important;background:transparent!important;border:1px solid var(--ln2)!important;min-width:68px}
+    #btn-skip-action:not(:disabled):hover{background:var(--s2)!important}
+    #btn-forced-pass{height:52px!important;border-radius:12px!important;background:var(--y)!important}
+    #territory-bar-box{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--s1);border:1px solid var(--ln);border-radius:14px}
+    #territory-bar-box>div{height:8px!important;border-radius:99px;background:var(--s3)!important;border:0!important}
+    #bar-A{background:var(--a)!important;box-shadow:0 0 12px rgba(62,224,255,.55)}#bar-B{background:var(--b)!important;box-shadow:0 0 12px rgba(255,92,122,.55)}#bar-N{background:var(--ln2)!important}
+    #territory-bar-box>div>div{transition:width .5s var(--ease)!important}
+    #guide-banner{background:var(--s1)!important;border:1px solid rgba(52,211,153,.35)!important;border-radius:16px!important;padding:10px 14px!important}
+    #toast-msg{background:var(--tx)!important;color:var(--bg)!important;border-radius:999px!important;padding:9px 16px!important;box-shadow:0 14px 30px -10px var(--sh);animation:toast .25s var(--ease) both}
+    @keyframes toast{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
 
-    @keyframes popIn {
-      0% { transform: scale(0.45); opacity: 0; }
-      70% { transform: scale(1.06); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .piece-pop {
-      animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
+    /* ---- modals & result ---- */
+    .fixed[id^="modal-"]{background:var(--ov)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .fixed[id^="modal-"]>div{background:var(--s1)!important;border:1px solid var(--ln2)!important;border-radius:24px!important;max-height:92dvh;overflow-y:auto;box-shadow:0 40px 100px -30px var(--sh)!important;animation:rise .26s var(--ease) both}
+    [id^="modal-"] h2,[id^="modal-"] h3{letter-spacing:-.01em}
+    [id^="modal-"] button[class*="from-cyan-500"],[id^="modal-"] button[class*="bg-cyan-500"]{background:var(--tx)!important;color:var(--bg)!important;box-shadow:none!important}
+    [id^="modal-"] button[class*="bg-slate-800"]{background:transparent!important;border:1px solid var(--ln2)!important;color:var(--tx)!important}
+    [id^="modal-"] button[class*="bg-slate-800"]:hover{background:var(--s2)!important}
+    #modal-result #result-title{font-size:34px;font-weight:900;letter-spacing:.04em}
+    #modal-result #result-glow{box-shadow:0 0 50px -8px currentColor}
+    #floating-result-bar{background:rgba(16,19,26,.95)!important;border:1px solid var(--ln2)!important;border-radius:999px!important}
+    #floating-result-bar button{background:var(--tx)!important;color:var(--bg)!important;border-radius:999px!important}
 
-    @keyframes warnPulse {
-      0%, 100% { transform: scale(1); opacity: 0.95; }
-      50% { transform: scale(1.1); opacity: 1; }
-    }
-    .warn-badge {
-      animation: warnPulse 1s infinite ease-in-out;
-    }
+    /* ---- battle screen v2 ---- */
+    /* 光源コマ：セルいっぱいに大きく、ライフ数字を読みやすく */
+    .board-cell [id^="piece-"]{width:86%!important;height:86%!important}
+    .board-cell [id^="piece-"]>div{width:58%!important;height:58%!important;border-width:1.5px!important}
+    .board-cell [id^="piece-"]>div>span{font-size:clamp(11px,3.4vw,17px)!important}
+    .board-cell [id^="piece-"] svg polygon{filter:drop-shadow(0 0 3px currentColor)}
+    /* 盤面：やや大きめの角丸と、手番側の色が縁にうっすら移る */
+    #board-grid{transition:box-shadow .4s var(--ease),border-color .4s var(--ease)}
+    body:has(#ui-active-turn-badge[class*="cyan"]) #board-grid{border-color:rgba(62,224,255,.28)!important;box-shadow:0 40px 80px -40px var(--sh),0 0 70px -28px rgba(62,224,255,.45)!important}
+    body:has(#ui-active-turn-badge[class*="rose"]) #board-grid{border-color:rgba(255,92,122,.28)!important;box-shadow:0 40px 80px -40px var(--sh),0 0 70px -28px rgba(255,92,122,.45)!important}
+    /* 相手の手番のときは相手パネルを点灯、自分側は少し沈める */
+    #opponent-bar{transition:border-color .25s,box-shadow .25s,opacity .25s}
+    body:has(#ui-active-turn-badge[class*="cyan"]):has(#opp-dot[class*="cyan"]) #opponent-bar{border-color:rgba(62,224,255,.55);box-shadow:0 0 0 4px rgba(62,224,255,.06),0 18px 36px -24px rgba(62,224,255,.5)}
+    body:has(#ui-active-turn-badge[class*="rose"]):has(#opp-dot[class*="rose"]) #opponent-bar{border-color:rgba(255,92,122,.55);box-shadow:0 0 0 4px rgba(255,92,122,.06),0 18px 36px -24px rgba(255,92,122,.5)}
+    body:has(#ui-active-turn-badge[class*="cyan"]):not(:has(#opp-dot[class*="cyan"])) #opponent-bar,
+    body:has(#ui-active-turn-badge[class*="rose"]):not(:has(#opp-dot[class*="rose"])) #opponent-bar{opacity:.62}
+    /* 陣地バー：太く、数字は両端に */
+    #territory-bar-box{padding:10px 14px}
+    #territory-bar-box>div{height:12px!important}
+    #territory-bar-box b{font-size:13px}
+    /* 自分のライフタイル：選択中が一目で分かる */
+    #self-lives-grid button[class*="border-white"]{transform:translateY(-2px)!important;box-shadow:0 10px 22px -8px currentColor!important}
+    #self-lives-grid button:disabled{opacity:1}
 
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 3px;
-    }
+    /* ---- v3: テーマ / 文言崩れ / 座標 ---- */
+    .k-theme{width:32px;padding:0!important;display:grid;place-items:center;font-size:14px}
+    .k-theme::before{content:"☾"}html[data-theme="light"] .k-theme::before{content:"☀"}
+    .board-cell span[class*="text-slate-500"]{display:none}
+    #lbl-popup-center,#popup-dir-progress,#lbl-opp-unused,#lbl-self-unused,#self-cycle-info,#lbl-self-cells,#lbl-opp-cells{white-space:nowrap;word-break:keep-all}
+    #direction-popup .grid.grid-cols-3{width:168px!important;height:168px!important}
+    #lbl-popup-center{font-size:10px!important;letter-spacing:0}
+    #popup-dir-progress{font-size:14px!important}
+    #opponent-bar .k-meta{flex-wrap:wrap;row-gap:4px}
+    #opp-lives-list,#opponent-bar .k-meta>div{flex-shrink:0}
+    html[data-theme="light"] #self-lives-grid button[class*="bg-slate-800"]{color:var(--tx)!important}
+    html[data-theme="light"] #self-lives-grid button[class*="bg-slate-950"]{color:var(--dm)!important}
+    html[data-theme="light"] #opp-lives-list span[class*="bg-slate-950"]{background:var(--s3)!important;border-color:var(--ln)!important}
+    html[data-theme="light"] #opp-lives-list span[class*="text-cyan-200"]{color:#0e7490}
+    html[data-theme="light"] #opp-lives-list span[class*="text-rose-200"]{color:#be123c}
+    html[data-theme="light"] .board-cell[style*="15, 23, 42"]{background-color:#eef1f6!important;border-color:#dde2ec!important}
+    html[data-theme="light"] .board-cell[style*="51, 65, 85"]{background-color:#e2e7f0!important;border-color:#b9c2d3!important}
+    html[data-theme="light"] .board-cell .text-slate-600{color:#a3acbf}
+    html[data-theme="light"] .text-white:not(button):not([class*="bg-"]),html[data-theme="light"] #popup-sim-info b{color:var(--tx)}
+    html[data-theme="light"] .text-slate-100,html[data-theme="light"] .text-slate-200{color:var(--tx)}
+    html[data-theme="light"] .text-slate-300,html[data-theme="light"] .text-slate-400{color:var(--mu)}
+    html[data-theme="light"] .text-slate-500{color:var(--dm)}
+    html[data-theme="light"] .text-cyan-200,html[data-theme="light"] .text-cyan-300,html[data-theme="light"] .text-cyan-400{color:#0e7490}
+    html[data-theme="light"] .text-rose-200,html[data-theme="light"] .text-rose-300,html[data-theme="light"] .text-rose-400{color:#be123c}
+    html[data-theme="light"] .text-amber-300{color:#b45309}html[data-theme="light"] .text-emerald-300{color:#047857}
+    html[data-theme="light"] [class*="bg-cyan-950"]{background:rgba(8,145,178,.09)!important}
+    html[data-theme="light"] [class*="bg-rose-950"]{background:rgba(225,29,72,.07)!important}
+    html[data-theme="light"] :is(#rules-modal-body,#tut-modal-body,#tutorial-step-list,#modal-skip-lives) :is([class*="bg-slate-8"],[class*="bg-slate-9"]){background-color:var(--s2)!important}
+    html[data-theme="light"] :is(#rules-modal-body,#tut-modal-body,#tutorial-step-list,#modal-skip-lives) [class*="border-slate-"]{border-color:var(--ln2)!important}
+    html[data-theme="light"] #direction-popup{background:rgba(255,255,255,.96)!important}
+    html[data-theme="light"] #direction-popup :is([class*="bg-slate-8"],[class*="bg-slate-9"]){background-color:var(--s3)!important;border-color:var(--ln2)!important}
+    html[data-theme="light"] #direction-popup button[class*="text-slate-"]{color:var(--tx)!important}
+    html[data-theme="light"] #modal-result .text-white{color:var(--tx)}
+    html[data-theme="light"] #btn-surrender{color:#be123c!important;border-color:rgba(225,29,72,.3)!important}
+    html[data-theme="light"] #btn-tutorial-steps{color:#047857!important}
+    html[data-theme="light"] .board-cell.selected-cell{outline-color:#d99a00}
+
+    /* ---- tutorial visual hints ---- */
+    :root{--g:#34d399;--gr:52,211,153}html[data-theme="light"]{--g:#059669;--gr:5,150,105}
+    @keyframes hintRing{0%,100%{box-shadow:0 0 0 0 rgba(var(--gr),.55),0 0 14px rgba(var(--gr),.35)}50%{box-shadow:0 0 0 7px rgba(var(--gr),0),0 0 26px rgba(var(--gr),.75)}}
+    @keyframes bob{0%,100%{transform:translate(-50%,-18%)}50%{transform:translate(-50%,-48%)}}
+    .hint-glow,.hint-dir,.hint-confirm{outline:2px solid var(--g)!important;outline-offset:2px;animation:hintRing 1.3s infinite ease-in-out!important;z-index:5}
+    .hint-dir{background:rgba(var(--gr),.2)!important;border-color:var(--g)!important;color:var(--tx)!important}
+    .hint-dir::after{content:"👆";position:absolute;left:50%;bottom:-6px;font-size:18px;transform:translate(-50%,0);animation:bob 1s infinite ease-in-out;pointer-events:none}
+    #popup-dir-N,#popup-dir-S,#popup-dir-E,#popup-dir-W{position:relative}
+    .tut-dim{opacity:.3!important;filter:grayscale(.7)}
+    #board-grid.tut-focus .board-cell:not(.tutorial-target){opacity:.45}
+    .board-cell.tutorial-target{outline:2.5px solid var(--g)!important;outline-offset:-2px;background-color:rgba(var(--gr),.16)!important}
+    .board-cell.tutorial-target::after{content:"👆";position:absolute;left:50%;top:50%;font-size:24px;line-height:1;pointer-events:none;z-index:25;animation:bob 1s infinite ease-in-out;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+    #guide-banner{display:flex;flex-direction:column;gap:8px}
+    #guide-banner.hidden{display:none!important}
+    #guide-progress{display:flex;gap:4px}
+    #guide-progress i{flex:1;height:4px;border-radius:99px;background:var(--s3)}
+    #guide-progress i.on{background:var(--g)}#guide-progress i.cur{background:linear-gradient(90deg,var(--g) 50%,var(--s3) 50%)}
+    #guide-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+    #guide-chips:empty{display:none}
+    .gc{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 6px;border-radius:999px;background:var(--s2);border:1px solid var(--ln);color:var(--dm);font-size:12px;font-weight:800;white-space:nowrap;transition:all .2s var(--ease)}
+    .gc i{font-style:normal;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--s3);color:var(--mu);font-size:10px;font-family:'JetBrains Mono',monospace}
+    .gc:not(:last-child)::after{content:"›";margin-left:4px;margin-right:-4px;color:var(--dm);font-weight:400}
+    .gc.cur{background:rgba(var(--gr),.14);border-color:var(--g);color:var(--tx);box-shadow:0 0 14px -2px rgba(var(--gr),.55)}
+    .gc.cur i{background:var(--g);color:#04130c}
+    .gc.done{color:var(--mu);text-decoration:line-through;text-decoration-color:var(--dm)}
+    .gc.done i{background:rgba(var(--gr),.25);color:var(--g)}
+    #guide-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+    /* ---- popup minimize ---- */
+    #direction-popup .pm-btn{width:26px;height:26px;padding:0!important;display:grid;place-items:center;border-radius:8px!important;background:var(--s3)!important;border:1px solid var(--ln)!important;color:var(--mu)!important}
+    #direction-popup .pm-btn:hover{color:var(--tx)!important;border-color:var(--ln2)!important}
+    #btn-popup-mini::before{content:"–";font-size:16px;font-weight:800;line-height:1}
+    #direction-popup.mini #btn-popup-mini::before{content:"⤢";font-size:13px}
+    #popup-mini-progress{display:none;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--s3);color:var(--tx)}
+    #popup-mini-progress.ready{background:rgba(var(--gr),.2);color:var(--g)}
+    #direction-popup.mini #popup-mini-progress{display:inline-block}
+    #direction-popup.mini{width:auto!important;padding:6px 8px!important;gap:6px!important;border-radius:14px!important;box-shadow:0 12px 30px -12px var(--sh)!important}
+    #direction-popup.mini>div:first-child{border:0!important;padding:0!important;gap:12px}
+    #direction-popup.mini .grid.grid-cols-3,#direction-popup.mini #popup-sim-info,#direction-popup.mini #popup-life-label{display:none!important}
+    #direction-popup.mini #btn-popup-confirm{display:none;padding:7px 14px!important}
+    #direction-popup.mini #btn-popup-confirm:not(:disabled){display:block}
+    #direction-popup.mini{margin:8px}
+    #direction-popup.mini-t{top:0}#direction-popup.mini-b{bottom:0}#direction-popup.mini-l{left:0}#direction-popup.mini-r{right:0}
+    /* ---- light theme: 見やすさ調整 ---- */
+    html[data-theme="light"] #board-grid{background:#dfe5ef!important;border-color:#b9c3d6!important;box-shadow:0 24px 50px -30px var(--sh)!important}
+    html[data-theme="light"] :is(.k-card,#self-bar,#territory-bar-box,#guide-banner,#game-header .k-ghost){box-shadow:0 1px 2px rgba(30,41,59,.06),0 10px 24px -16px rgba(30,41,59,.28)}
+    html[data-theme="light"] .board-cell span[class*="bg-cyan-950"]{background:#0e7490!important;color:#fff}
+    html[data-theme="light"] .board-cell span[class*="bg-rose-950"]{background:#be123c!important;color:#fff}
+    html[data-theme="light"] .board-cell span[class*="text-cyan-300"]{color:#0b4f63}
+    html[data-theme="light"] .board-cell span[class*="text-rose-300"]{color:#8f0f2f}
+    html[data-theme="light"] .board-cell [id^="piece-"]>div[class*="bg-cyan-400"]{background:#0e7490;color:#fff;border-color:#fff}
+    html[data-theme="light"] .board-cell [id^="piece-"]>div{box-shadow:0 2px 6px rgba(15,23,42,.35)}
+    html[data-theme="light"] #bar-A{background:#0891b2!important;box-shadow:none}
+    html[data-theme="light"] #bar-B{background:#e11d48!important;box-shadow:none}
+    html[data-theme="light"] #bar-N{background:#cbd3e1!important}
+    html[data-theme="light"] .k-seg button[class*="bg-cyan-500/15"]{box-shadow:0 1px 2px rgba(30,41,59,.15)}
+    html[data-theme="light"] #ui-active-turn-badge{background:#fff!important}
+
+    /* ---- 実効ライフ表示（基本値から変化したときは暗いコア＋状態色の数字） ---- */
+    .board-cell [id^="piece-"]>div.life-mod{background:#0b1220!important;border-width:2px!important}
+    .board-cell [id^="piece-"]>div.life-mod.owner-a{border-color:#22d3ee!important}
+    .board-cell [id^="piece-"]>div.life-mod.owner-b{border-color:#fb7185!important}
+    .board-cell [id^="piece-"]>div.life-up{color:#4ade80!important;box-shadow:0 0 0 2px rgba(74,222,128,.35),0 0 12px rgba(74,222,128,.7)!important}
+    .board-cell [id^="piece-"]>div.life-down{color:#fb923c!important;box-shadow:0 0 0 2px rgba(251,146,60,.35),0 0 12px rgba(251,146,60,.7)!important}
+    .board-cell [id^="piece-"]>div.life-crit{color:#f87171!important;box-shadow:0 0 0 2px rgba(248,113,113,.4),0 0 12px rgba(248,113,113,.8)!important}
+    /* ---- ポップアップ: ライフ表記は座標の下の行へ ---- */
+    #direction-popup>div:first-child>div:first-child{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+    #popup-coord-label,#popup-life-label{white-space:nowrap}
+    #popup-life-label{margin-left:0!important}
+    /* ---- スマホ: チュートリアルのガイドを1行に圧縮し、盤面サイズを通常対戦と同じに保つ ---- */
+    #mobile-top-slot:has(#guide-banner:not(.hidden)) #opponent-bar{display:none}
+    #mobile-top-slot #guide-banner{position:relative;flex-direction:row!important;flex-wrap:nowrap;align-items:center;gap:8px!important;padding:8px 10px 12px!important;border-radius:14px!important}
+    #mobile-top-slot #guide-banner>div:not(#guide-progress):not(#guide-chips),#mobile-top-slot #guide-banner>div>div{display:contents}
+    #mobile-top-slot #guide-step-badge,#mobile-top-slot #guide-desc{display:none!important}
+    #mobile-top-slot #guide-title{display:none}
+    #mobile-top-slot #guide-banner[data-nochips] #guide-title{display:block;order:2;flex:1;min-width:0;font-size:12px}
+    #mobile-top-slot #guide-chips{order:2;flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:5px}
+    #mobile-top-slot #guide-chips::-webkit-scrollbar{display:none}
+    #mobile-top-slot .gc{font-size:11px;padding:4px 8px 4px 5px;gap:5px;flex-shrink:0}
+    #mobile-top-slot #btn-guide-detail{order:3;flex-shrink:0}
+    #mobile-top-slot #guide-progress{position:absolute;left:12px;right:12px;bottom:4px;gap:3px}
+    #mobile-top-slot #guide-progress i{height:3px}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
   </style>
+  <script>
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==='light'?'#f3f4f8':'#090b10';}
+    function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';applyTheme(t);try{localStorage.setItem('kosen-theme',t)}catch(e){}try{if(gameState&&typeof renderAll==='function')renderAll();}catch(e){}}
+    (function(){var t=null;try{t=localStorage.getItem('kosen-theme')}catch(e){}if(!t)t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';applyTheme(t);})();
+  </script>
 </head>
-<body class="h-[100dvh] w-screen overflow-hidden flex flex-col bg-[#090d16]">
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col">
 
   <!-- ==========================================
        1. TITLE SCREEN
        ========================================== -->
-  <main id="screen-title" class="relative z-10 flex-1 w-full h-full flex items-center justify-center p-4 overflow-y-auto">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-      
-      <!-- Language Switcher (Default: Japanese) -->
-      <div class="flex justify-end mb-3">
-        <div class="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
-          <button type="button" id="btn-lang-ja" onclick="setLanguage('ja')"
-            class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 shadow">
-            日本語
-          </button>
-          <button type="button" id="btn-lang-en" onclick="setLanguage('en')"
-            class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
-            English
-          </button>
-        </div>
+  <main id="screen-title" class="relative z-10 flex-1 w-full h-full flex items-center justify-center p-5 overflow-y-auto" style="padding-top:max(1.25rem,env(safe-area-inset-top));padding-bottom:max(1.25rem,env(safe-area-inset-bottom))">
+    <div class="k-title-wrap">
+      <div class="flex items-center justify-between">
+        <div class="k-mark" aria-hidden="true"><i class="a"></i><i class="a2"></i><i></i><i class="a2"></i><i class="b"></i><i class="a2"></i><i></i><i class="a2"></i><i class="b"></i></div>
+        <div class="flex items-center gap-2"><button type="button" class="k-ghost k-theme" onclick="toggleTheme()" aria-label="Theme"></button>
+        <div class="inline-flex gap-0.5 p-1 rounded-xl border" style="background:var(--s1);border-color:var(--ln)">
+          <button type="button" id="btn-lang-ja" onclick="setLanguage('ja')" class="bg-cyan-500">日本語</button>
+          <button type="button" id="btn-lang-en" onclick="setLanguage('en')">English</button>
+        </div></div>
       </div>
-
-      <!-- Title Only -->
-      <div class="text-center mb-8">
-        <h1 class="text-5xl sm:text-6xl font-black tracking-tighter text-cyan-400 text-glow-a">
-          KOSEN
-        </h1>
-      </div>
-
-      <!-- Configuration Options (6x6 fixed, CPU Level only) -->
-      <div class="space-y-6">
-
-        <!-- Game Mode Selection -->
+      <h1 class="k-word">KOSEN</h1>
+      <div class="space-y-5">
         <div>
-          <label id="lbl-game-mode" class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
-            対戦モード
-          </label>
-          <div class="grid grid-cols-2 gap-2.5">
-            <button type="button" onclick="setSetupOption('gameMode', 'cpu')" id="opt-mode-cpu"
-              class="p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm">
-              CPU対戦
-            </button>
-            <button type="button" onclick="setSetupOption('gameMode', 'local')" id="opt-mode-local"
-              class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">
-              二人対戦
-            </button>
+          <label id="lbl-game-mode" class="k-eyebrow">対戦モード</label>
+          <div class="k-seg grid-cols-2">
+            <button type="button" onclick="setSetupOption('gameMode', 'cpu')" id="opt-mode-cpu" class="p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm">CPU対戦</button>
+            <button type="button" onclick="setSetupOption('gameMode', 'local')" id="opt-mode-local" class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">二人対戦</button>
           </div>
-          <p id="lbl-game-mode-desc" class="text-[10px] text-slate-500 mt-2">二人対戦では、1台の端末を交互に操作します。</p>
+          <p id="lbl-game-mode-desc" class="hidden mt-2 text-[11px]" style="color:var(--dm)">二人対戦では、1台の端末を交互に操作します。</p>
         </div>
-
-        <!-- CPU Level Selection -->
         <div id="cpu-level-settings">
-          <label id="lbl-cpu-level" class="block text-xs font-bold tracking-wider text-slate-400 mb-2">
-            CPUレベル
-          </label>
-          <div class="grid grid-cols-3 gap-2.5">
-            <button type="button" onclick="setSetupOption('cpuLevel', 1)" id="opt-cpu-1"
-              class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">
-              初級
-            </button>
-            <button type="button" onclick="setSetupOption('cpuLevel', 2)" id="opt-cpu-2"
-              class="p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm">
-              中級
-            </button>
-            <button type="button" onclick="setSetupOption('cpuLevel', 3)" id="opt-cpu-3"
-              class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">
-              上級
-            </button>
+          <label id="lbl-cpu-level" class="k-eyebrow">CPUレベル</label>
+          <div class="k-seg grid-cols-3">
+            <button type="button" onclick="setSetupOption('cpuLevel', 1)" id="opt-cpu-1" class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">初級</button>
+            <button type="button" onclick="setSetupOption('cpuLevel', 2)" id="opt-cpu-2" class="p-3.5 rounded-xl border text-center transition-all bg-cyan-500/15 border-cyan-400 text-white font-bold text-sm">中級</button>
+            <button type="button" onclick="setSetupOption('cpuLevel', 3)" id="opt-cpu-3" class="p-3.5 rounded-xl border text-center transition-all bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600 font-bold text-sm">上級</button>
           </div>
         </div>
-
       </div>
-
-      <!-- Main Action Buttons -->
-      <div class="mt-8 space-y-3">
-        <button type="button" onclick="startGame()"
-          class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-lg tracking-wide shadow-lg shadow-cyan-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
-          <span id="btn-game-start-label">GAME START</span>
-        </button>
-
-        <button type="button" onclick="startOrResumeTutorial()"
-          class="w-full py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-sm border border-slate-700 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
-          <span id="btn-tutorial-label">チュートリアル</span>
-        </button>
-      </div>
-
-      <div class="mt-5 flex items-center justify-center gap-5">
-        <button type="button" id="btn-title-rules" onclick="openRuleModal()" class="text-xs text-slate-400 hover:text-slate-200 underline underline-offset-4">
-          ルールを確認する
-        </button>
-        <!-- =========================================================================
-             【デモプレイ復活手順①】
-             以下の <button id="btn-title-demo"> ... </button> のコメントアウトを解除すると、
-             タイトル画面下部に「デモプレイ観戦 (CPU対局)」ボタンが表示されます。
-             （あわせてコード内の【デモプレイ復活手順②〜⑧】も解除してください）
-             ========================================================================= -->
-        <!--
-        <button type="button" id="btn-title-demo" onclick="startDemoGame()" class="text-xs text-cyan-400/80 hover:text-cyan-300 underline underline-offset-4">
-          デモプレイ観戦 (CPU対局)
-        </button>
-        -->
+      <div class="space-y-2.5">
+        <button type="button" id="btn-start" onclick="startGame()" class="k-primary w-full"><span id="btn-game-start-label">GAME START</span></button>
+        <button type="button" id="btn-tut" onclick="startOrResumeTutorial()" class="k-secondary w-full"><span id="btn-tutorial-label">チュートリアル</span></button>
+        <div class="pt-2 text-center"><button type="button" id="btn-title-rules" onclick="openRuleModal()" class="text-xs underline underline-offset-4" style="color:var(--mu)">ルールを確認する</button></div>
+        <!-- 【デモプレイ復活手順①】<button type="button" id="btn-title-demo" onclick="startDemoGame()" class="text-xs text-cyan-400/80 hover:text-cyan-300 underline underline-offset-4">デモプレイ観戦 (CPU対局)</button> -->
       </div>
     </div>
   </main>
@@ -212,64 +340,33 @@
        2. GAME PLAY & TUTORIAL SCREEN
        Supports both Smartphone (1-col) & PC (2-col)
        ========================================== -->
-  <div id="screen-game" class="hidden relative z-10 h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-[#090d16]">
-    
-    <!-- Top Compact Header -->
-    <header class="w-full max-w-[1100px] mx-auto px-2.5 pt-2 pb-1 shrink-0">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl px-2.5 py-1.5 flex items-center justify-between gap-1 whitespace-nowrap">
-        <div class="flex items-center gap-1 shrink-0">
-          <button type="button" id="btn-header-back" onclick="confirmReturnToTitle()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors shrink-0" title="タイトルへ戻る">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+  <div id="screen-game" class="hidden relative z-10 h-[100dvh] w-full flex flex-col justify-between overflow-hidden">
+    <header id="game-header" class="w-full max-w-[1100px] mx-auto shrink-0">
+      <div class="k-bar whitespace-nowrap">
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" id="btn-header-back" onclick="confirmReturnToTitle()" class="k-ghost" title="タイトルへ戻る">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
+          <div id="turn-counter-box" class="font-mono-num">
+            <span id="lbl-turn-prefix">手番</span><span id="ui-turn-current">1</span><span style="color:var(--dm)">/</span><span id="ui-turn-max" style="color:var(--mu)">64</span>
+          </div>
+          <div id="ui-active-turn-badge">先手</div>
         </div>
-
-        <!-- Turn & Active Player Badge -->
         <div class="flex items-center gap-1.5 shrink-0">
-          <div id="turn-counter-box" class="bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-[11px] font-mono-num shrink-0">
-            <span id="lbl-turn-prefix" class="text-slate-400 text-[10px] mr-0.5">手番</span>
-            <span id="ui-turn-current" class="font-bold text-white">1</span>
-            <span class="text-slate-600">/</span>
-            <span id="ui-turn-max" class="text-slate-400">64</span>
-          </div>
-          <div id="ui-active-turn-badge" class="px-2 py-1 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shrink-0">
-            先手
-          </div>
-        </div>
-
-        <!-- View Mode Toggle, Surrender & Rule Button -->
-        <div class="flex items-center gap-1 shrink-0">
-          <button type="button" id="btn-layout-toggle" onclick="toggleLayoutMode()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 border border-slate-700 transition-colors shrink-0" title="PCとスマホを切り替え">
-            PC
-          </button>
-          <button type="button" id="btn-tutorial-steps" onclick="openTutorialStepMenu()" class="hidden px-2 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold shrink-0">
-            STEP
-          </button>
-          <button type="button" id="btn-surrender" onclick="openSurrenderModal()" class="px-2 py-1 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-[11px] font-bold text-rose-300 border border-rose-500/40 transition-colors shrink-0">
-            サレンダー
-          </button>
-          <button type="button" id="btn-header-rules" onclick="openRuleModal()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 border border-slate-700 shrink-0">
-            ルール
-          </button>
+          <button type="button" id="btn-layout-toggle" onclick="toggleLayoutMode()" class="hidden k-ghost" title="PCとスマホを切り替え">PC</button>
+          <button type="button" class="k-ghost k-theme" onclick="toggleTheme()" aria-label="Theme"></button>
+          <button type="button" id="btn-tutorial-steps" onclick="openTutorialStepMenu()" class="hidden k-ghost">STEP</button>
+          <button type="button" id="btn-surrender" onclick="openSurrenderModal()" class="k-ghost">サレンダー</button>
+          <button type="button" id="btn-header-rules" onclick="openRuleModal()" class="k-ghost">ルール</button>
         </div>
       </div>
     </header>
 
-    <!-- Main Workspace Container (switches between Mobile 1-col and PC 2-col) -->
     <div id="game-workspace" class="flex-1 min-h-0 w-full max-w-[480px] mx-auto px-2.5 pb-2 flex flex-col justify-between gap-1.5 overflow-hidden">
-      
-      <!-- Mobile-only Top Slot (Opponent Bar & Tutorial Banner sit here in Mobile mode) -->
       <div id="mobile-top-slot" class="flex flex-col gap-1.5 shrink-0"></div>
-
-      <!-- Center / Left Board Stage Column -->
       <section id="board-stage-col" class="relative flex-1 w-full h-full min-h-0 min-w-0 flex items-center justify-center overflow-hidden py-0.5">
-        <!-- Strict 1:1 Square Board Container -->
         <div id="board-container" class="relative flex items-center justify-center shrink-0" style="width: 320px; height: 320px;">
-          <div id="board-grid" class="w-full h-full grid grid-cols-6 grid-rows-6 gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-2xl bg-slate-900 border-2 border-slate-800 shadow-2xl relative">
-            <!-- Dynamically populated 6x6 (36) cells -->
-          </div>
-
+          <div id="board-grid" class="w-full h-full grid grid-cols-6 grid-rows-6 relative"></div>
           <!-- Contextual Direction Selection Popup -->
           <div id="direction-popup" class="hidden absolute z-30 bg-slate-900/95 backdrop-blur-md border-2 border-slate-600 rounded-3xl p-3 shadow-2xl w-60 sm:w-64 flex flex-col items-center gap-1.5">
             <div class="w-full flex items-center justify-between border-b border-slate-800 pb-1">
@@ -277,11 +374,15 @@
                 <span id="popup-coord-label">座標 (2, 2)</span>
                 <span id="popup-life-label" class="ml-1 px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono-num text-[11px]">ライフ3 (2方向)</span>
               </div>
-              <button type="button" onclick="closeDirectionPopup()" class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400">
+              <div class="flex items-center gap-1.5">
+                <span id="popup-mini-progress"></span>
+                <button type="button" id="btn-popup-mini" onclick="togglePopupMini()" class="pm-btn" aria-label="Minimize"></button>
+                <button type="button" onclick="closeDirectionPopup()" class="pm-btn p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400" aria-label="Close">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
+              </div>
             </div>
 
             <!-- Cross Direction Selector -->
@@ -339,120 +440,76 @@
         </div>
       </section>
 
-      <!-- Right / Bottom Panel Column -->
       <div id="side-panel-col" class="flex flex-col gap-1.5 shrink-0">
-        
-        <!-- Opponent Compact Status Bar -->
-        <section id="opponent-bar" class="bg-slate-900 border border-slate-800 rounded-2xl px-3 py-2 flex items-center justify-between gap-2 shrink-0">
-          <div class="flex items-center gap-2 min-w-0">
-            <span id="opp-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
-            <div class="truncate">
-              <div class="flex items-center gap-1">
-                <span id="opp-role-label" class="font-extrabold text-xs text-white">後手</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold" id="opp-type-tag">CPU</span>
-              </div>
-              <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
-                <span><span id="lbl-opp-sources">光源</span>:<b id="opp-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
-                <span><span id="lbl-opp-skip">スキップ</span>:<b id="opp-skip-status" class="text-slate-300 ml-0.5">残1</b></span>
-              </div>
-            </div>
+        <section id="opponent-bar" class="k-card k-player shrink-0">
+          <div class="k-id">
+            <span id="opp-dot" class="rounded-full bg-rose-500 shrink-0"></span>
+            <span id="opp-role-label">後手</span>
+            <span id="opp-type-tag" class="px-1.5 py-0.5 font-bold">CPU</span>
           </div>
-
-          <!-- Opponent Unused Lives -->
-          <div class="flex flex-col items-end gap-0.5">
-            <span id="lbl-opp-unused" class="text-[9px] text-slate-400">未使用ライフ</span>
-            <div id="opp-lives-list" class="flex items-center gap-1">
-              <!-- Populated by JS -->
-            </div>
+          <div class="k-meta">
+            <span><span id="lbl-opp-sources">光源</span> <b id="opp-sources" class="font-mono-num" style="color:var(--tx)">1</b></span>
+            <span><span id="lbl-opp-skip">スキップ</span> <b id="opp-skip-status" style="color:var(--tx)">残1</b></span>
+            <div class="flex items-center gap-1.5"><span id="lbl-opp-unused" class="k-eyebrow" style="font-size:9px">未使用ライフ</span><div id="opp-lives-list" class="flex items-center"></div></div>
           </div>
-
-          <!-- Opponent Score -->
-          <div class="text-right shrink-0 pl-2 border-l border-slate-800">
-            <div id="lbl-opp-cells" class="text-[9px] text-slate-400 leading-none">所有マス</div>
-            <div id="opp-score" class="font-mono-num text-base sm:text-lg font-black text-rose-400 leading-tight mt-0.5">3</div>
-          </div>
+          <div class="k-score"><span id="lbl-opp-cells" class="k-eyebrow">所有マス</span><div id="opp-score" class="font-mono-num text-rose-400">3</div></div>
         </section>
 
-        <!-- Tutorial Guide Banner (ONLY shown during Tutorial Mode) -->
-        <section id="guide-banner" class="hidden bg-slate-900/95 border border-emerald-500/40 rounded-2xl px-3 py-2 shrink-0 flex-col gap-1">
+        <section id="guide-banner" class="hidden shrink-0 flex-col gap-1">
           <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span id="guide-step-badge" class="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono-num text-[10px] font-bold shrink-0">
-                STEP 1/6
-              </span>
-              <span id="guide-title" class="text-xs font-bold text-white truncate">
-                チュートリアル
-              </span>
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="guide-step-badge" class="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono-num text-[10px] font-bold shrink-0">STEP 1/6</span>
+              <span id="guide-title" class="text-xs font-bold truncate">チュートリアル</span>
             </div>
-            <button type="button" id="btn-guide-detail" onclick="openTutorialInfoModal()" class="shrink-0 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-cyan-300 font-bold border border-slate-700">
-              解説
-            </button>
+            <button type="button" id="btn-guide-detail" onclick="openTutorialInfoModal()" class="k-ghost" style="height:26px;color:var(--a)">解説</button>
           </div>
-          <p id="guide-desc" class="text-[11px] text-slate-300 leading-snug">
-          </p>
+          <p id="guide-desc" class="text-[11px] leading-snug" style="color:var(--mu)"></p>
         </section>
 
-        <!-- Territory Ratio Bar -->
-        <div id="territory-bar-box" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center gap-2 shrink-0">
-          <span class="text-[11px] font-mono-num font-bold text-cyan-400 shrink-0"><span id="lbl-ratio-a">先手</span> <b id="ratio-A">3</b></span>
-          <div class="flex-1 h-2.5 bg-slate-950 rounded-full overflow-hidden flex border border-slate-800">
-            <div id="bar-A" class="h-full bg-cyan-400 transition-all duration-300" style="width: 8.3%"></div>
-            <div id="bar-N" class="h-full bg-slate-700 transition-all duration-300" style="width: 83.4%"></div>
-            <div id="bar-B" class="h-full bg-rose-500 transition-all duration-300" style="width: 8.3%"></div>
+        <div id="territory-bar-box" class="shrink-0">
+          <span class="text-[11px] font-mono-num font-bold shrink-0" style="color:var(--a)"><span id="lbl-ratio-a">先手</span> <b id="ratio-A">3</b></span>
+          <div class="flex-1 overflow-hidden flex">
+            <div id="bar-A" class="h-full" style="width: 8.3%"></div>
+            <div id="bar-N" class="h-full" style="width: 83.4%"></div>
+            <div id="bar-B" class="h-full" style="width: 8.3%"></div>
           </div>
-          <span class="text-[10px] font-mono-num text-slate-400 shrink-0"><span id="lbl-ratio-n">中立</span> <b id="ratio-N">30</b></span>
-          <span class="text-[11px] font-mono-num font-bold text-rose-400 shrink-0"><span id="lbl-ratio-b">後手</span> <b id="ratio-B">3</b></span>
+          <span class="text-[10px] font-mono-num shrink-0" style="color:var(--dm)"><span id="lbl-ratio-n">中立</span> <b id="ratio-N">30</b></span>
+          <span class="text-[11px] font-mono-num font-bold shrink-0" style="color:var(--b)"><span id="lbl-ratio-b">後手</span> <b id="ratio-B">3</b></span>
         </div>
 
-        <!-- Bottom Player Control Dock (Unused Life Selection + Skip / Pass) -->
-        <section id="self-bar" class="bg-slate-900 border-2 border-cyan-500/60 rounded-2xl p-2.5 flex flex-col gap-2 shrink-0">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-1.5">
-              <span id="self-dot" class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-              <span id="self-role-label" class="font-extrabold text-xs text-white">先手 (あなた)</span>
-              <span class="text-[10px] text-slate-400 ml-1"><span id="lbl-self-sources">光源</span>:<b id="self-sources" class="font-mono-num text-slate-200 ml-0.5">1</b></span>
+        <section id="self-bar" class="shrink-0">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2"><span id="self-dot" class="rounded-full bg-cyan-400"></span><span id="self-role-label">先手 (あなた)</span></div>
+              <div class="text-[11px] mt-1.5" style="color:var(--mu)"><span id="lbl-self-sources">光源</span> <b id="self-sources" class="font-mono-num" style="color:var(--tx)">1</b></div>
             </div>
-
-            <div class="flex items-center gap-2">
-              <div class="text-xs text-slate-400">
-                <span id="lbl-self-cells">所有マス</span>: <span id="self-score" class="font-mono-num font-black text-sm sm:text-base text-cyan-400">3</span>
-                <span id="self-score-diff" class="font-mono-num text-xs font-bold text-emerald-400 hidden">+0</span>
-              </div>
+            <div class="text-right">
+              <span id="lbl-self-cells" class="k-eyebrow" style="font-size:9px">所有マス</span>
+              <div class="flex items-baseline justify-end gap-1.5"><span id="self-score-diff" class="font-mono-num hidden">+0</span><span id="self-score" class="font-mono-num font-black text-cyan-400">3</span></div>
             </div>
           </div>
-
-          <!-- Unused Life Selector Row + Skip/Pass Button -->
           <div class="flex items-stretch gap-2">
             <div class="flex-1">
-              <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                <span id="lbl-self-unused" class="font-bold text-slate-300">未使用ライフ</span>
-                <span id="self-cycle-info" class="font-mono-num">サイクル 1/4手目</span>
+              <div class="flex items-center justify-between mb-1.5">
+                <span id="lbl-self-unused" class="k-eyebrow">未使用ライフ</span>
+                <span id="self-cycle-info" class="font-mono-num text-[10px]" style="color:var(--dm)">サイクル 1/4手目</span>
               </div>
-              <div id="self-lives-grid" class="grid grid-cols-4 gap-1.5">
-                <!-- Populated by JS -->
-              </div>
+              <div id="self-lives-grid" class="grid grid-cols-4"></div>
             </div>
-
-            <!-- Skip / Forced Pass Button -->
             <div class="flex flex-col justify-end shrink-0">
-              <button type="button" id="btn-skip-action" onclick="openSkipModal('B')"
-                class="h-[44px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 flex flex-col items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              <button type="button" id="btn-skip-action" onclick="openSkipModal('B')" class="px-3 text-xs font-bold flex flex-col items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed">
                 <span id="lbl-btn-skip">スキップ</span>
-                <span id="self-skip-sub" class="text-[9px] text-slate-400 font-normal">残り1回</span>
+                <span id="self-skip-sub" class="text-[9px] font-normal" style="color:var(--dm)">残り1回</span>
               </button>
-              <button type="button" id="btn-forced-pass" onclick="openSkipModal('C')"
-                class="hidden h-[44px] px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-black text-slate-950 flex flex-col items-center justify-center transition-all animate-pulse">
+              <button type="button" id="btn-forced-pass" onclick="openSkipModal('C')" class="hidden px-3 text-xs font-black text-slate-950 flex flex-col items-center justify-center animate-pulse">
                 <span id="lbl-btn-pass">強制パス</span>
                 <span id="lbl-btn-pass-sub" class="text-[9px] font-bold">配置不可</span>
               </button>
             </div>
           </div>
         </section>
-
       </div>
-
     </div>
-
   </div>
 
   <!-- ==========================================
@@ -915,7 +972,8 @@
       cpuLevel: 2 // 1: Easy (Weighted Random), 2: Normal (Heuristic), 3: Hard (Beam Search Minimax)
     };
 
-    let currentLayoutMode = window.innerWidth >= 880 ? 'pc' : 'mobile';
+    function detectLayoutMode() { return (window.innerWidth >= 880 && window.innerWidth > window.innerHeight * 1.05) ? 'pc' : 'mobile'; }
+    let currentLayoutMode = detectLayoutMode();
     let savedTutorialStep = 1;
     let gameState = null;
 
@@ -1015,7 +1073,9 @@
     }
 
     window.addEventListener('resize', () => {
-      requestAnimationFrame(updateBoardSquareSize);
+      const m = detectLayoutMode();
+      if (m !== currentLayoutMode) applyLayoutMode(m);
+      else requestAnimationFrame(updateBoardSquareSize);
     });
 
     /* --------------------------------------------------------------------------
@@ -1578,6 +1638,8 @@
       if (cpuBtn) cpuBtn.className = isLocal ? idleClass : selectedClass;
       if (localBtn) localBtn.className = isLocal ? selectedClass : idleClass;
       if (cpuSettings) cpuSettings.classList.toggle('hidden', isLocal);
+      const modeDesc = document.getElementById('lbl-game-mode-desc');
+      if (modeDesc) modeDesc.classList.toggle('hidden', !isLocal);
     }
 
     /**
@@ -1821,12 +1883,14 @@
         return;
       }
 
-      selectedCell = { r, c };
       const requiredCount = 5 - selectedLife;
+      // すでにポップアップが開いている状態で別のマスに変える場合は、選択済みの方向を維持する
+      const keepDirs = Boolean(selectedCell) && selectedDirsQueue.length <= requiredCount;
+      selectedCell = { r, c };
 
       if (requiredCount === 4) {
         selectedDirsQueue = ['N', 'S', 'E', 'W'];
-      } else {
+      } else if (!keepDirs) {
         selectedDirsQueue = [];
       }
 
@@ -1854,6 +1918,27 @@
       }
 
       renderAll();
+    }
+
+
+    /* --------------------------------------------------------------------------
+     * DIRECTION POPUP MINIMIZE (display only)
+     * -------------------------------------------------------------------------- */
+    let popupMinimized = false;
+    function togglePopupMini() { popupMinimized = !popupMinimized; applyPopupMini(); }
+    function applyPopupMini() {
+      const pop = document.getElementById('direction-popup');
+      if (!pop) return;
+      const cls = ['mini', 'mini-t', 'mini-b', 'mini-l', 'mini-r'];
+      if (!selectedCell || !selectedLife) { popupMinimized = false; cls.forEach(c => pop.classList.remove(c)); return; }
+      pop.classList.toggle('mini', popupMinimized);
+      if (!popupMinimized) { cls.slice(1).forEach(c => pop.classList.remove(c)); return; }
+      // 選択中のマスと反対側の角に寄せて、盤面をなるべく隠さない
+      const top = selectedCell.r >= 3, left = selectedCell.c >= 3;
+      pop.classList.toggle('mini-t', top); pop.classList.toggle('mini-b', !top);
+      pop.classList.toggle('mini-l', left); pop.classList.toggle('mini-r', !left);
+      const need = 5 - selectedLife, el = document.getElementById('popup-mini-progress');
+      if (el) { el.textContent = `${selectedDirsQueue.length}/${need}`; el.classList.toggle('ready', selectedDirsQueue.length === need); }
     }
 
     function closeDirectionPopup() {
@@ -1939,6 +2024,116 @@
       }
     }
 
+
+    /* --------------------------------------------------------------------------
+     * DESTRUCTION FX (visual only): shockwave / particles / shake / chain cut-in
+     * -------------------------------------------------------------------------- */
+    /* 視点: CPU戦は人間側、二人対戦は今手を打った側から見て「撃破（相手の光源）」「被破壊（自分の光源）」を区別する */
+    function fxViewer() { return (gameState.gameMode === 'local' ? gameState.activePlayer : gameState.humanRole) || 'A'; }
+    function destroyCounts(step) {
+      const me = fxViewer(); let kill = 0, lost = 0;
+      step.destroyedInWave.forEach(d => { if (d.owner === me) lost++; else kill++; });
+      return { kill, lost };
+    }
+    function destroyMessage(step, idx) {
+      const { kill, lost } = destroyCounts(step), en = isEn(), wave = idx + 1;
+      const head = idx > 0 ? (en ? `Chain ${wave}: ` : `${wave}連鎖 `) : '';
+      let body;
+      if (kill && lost) body = en ? `DOUBLE BREAK! Destroyed ×${kill} / Lost ×${lost}` : `同時破壊！ 撃破×${kill} 被破壊×${lost}`;
+      else if (kill) body = en ? `Destroyed! ×${kill}` : `撃破！ ×${kill}`;
+      else body = en ? `Lost! ×${lost}` : `破壊された！ ×${lost}`;
+      return head + body;
+    }
+
+    function playDestroyFX(step, idx) {
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+      const box = document.getElementById('board-container');
+      if (!box) return false;
+      const en = isEn(), wave = idx + 1, n = step.destroyedInWave.length;
+      const me = fxViewer(), opp = me === 'A' ? 'B' : 'A';
+      const { kill, lost } = destroyCounts(step);
+      const light = document.documentElement.getAttribute('data-theme') === 'light';
+      const fxRGB = light ? { A: '8,145,178', B: '225,29,72' } : { A: '62,224,255', B: '255,92,122' };
+      const bandRGB = { A: '8,145,178', B: '225,29,72' };
+      const cr = box.getBoundingClientRect();
+      const layer = document.createElement('div');
+      layer.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:60;overflow:visible';
+      box.appendChild(layer);
+
+      step.destroyedInWave.forEach(item => {
+        const el = document.getElementById(`cell-${item.r}-${item.c}`);
+        if (!el) return;
+        const rgb = fxRGB[item.owner];            // 色は「壊れた光源の持ち主」の色
+        const mine = item.owner === me;
+        const r = el.getBoundingClientRect();
+        const cx = r.left - cr.left + r.width / 2, cy = r.top - cr.top + r.height / 2;
+        const mk = (css) => { const d = document.createElement('div'); d.style.cssText = `position:absolute;left:${cx}px;top:${cy}px;border-radius:50%;${css}`; layer.appendChild(d); return d; };
+        const flash = mk(`width:${r.width * 1.6}px;height:${r.width * 1.6}px;margin:-${r.width * 0.8}px 0 0 -${r.width * 0.8}px;background:radial-gradient(circle,rgba(255,255,255,.95),rgba(${rgb},.75) 40%,transparent 70%)`);
+        flash.animate([{ opacity: 1, transform: 'scale(.3)' }, { opacity: 0, transform: 'scale(1.8)' }], { duration: 520, easing: 'ease-out' });
+        for (let k = 0; k < 2; k++) {
+          const ring = mk(`width:${r.width}px;height:${r.width}px;margin:-${r.width / 2}px 0 0 -${r.width / 2}px;border:${3 - k}px solid rgba(${rgb},.95);box-shadow:0 0 18px rgba(${rgb},.8)`);
+          ring.animate([{ opacity: 1, transform: 'scale(.3)' }, { opacity: 0, transform: `scale(${3.4 + wave * 0.6})` }], { duration: 650 + k * 180, delay: k * 90, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
+        }
+        const pc = 10 + wave * 5;
+        for (let k = 0; k < pc; k++) {
+          const sz = 3 + Math.random() * 4;
+          const pt = mk(`width:${sz}px;height:${sz}px;margin:-${sz / 2}px 0 0 -${sz / 2}px;background:rgb(${k % 3 ? rgb : '255,255,255'});box-shadow:0 0 8px rgba(${rgb},.9)`);
+          const ang = Math.random() * Math.PI * 2, dist = 36 + Math.random() * (60 + wave * 18);
+          pt.animate([{ opacity: 1, transform: 'translate(0,0) scale(1)' }, { opacity: 0, transform: `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist}px) scale(.2)` }],
+            { duration: 520 + Math.random() * 380, easing: 'cubic-bezier(.1,.7,.3,1)' });
+        }
+        // どちらの光源が壊れたかを、その場に小さなタグで表示
+        const tag = document.createElement('div');
+        tag.textContent = mine ? (en ? 'LOST' : '被破壊') : (en ? 'KILL' : '撃破');
+        tag.style.cssText = `position:absolute;left:${cx}px;top:${cy}px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.06em;color:#fff;white-space:nowrap;background:rgba(${bandRGB[item.owner]},.96);box-shadow:0 4px 14px rgba(0,0,0,.4)`;
+        layer.appendChild(tag);
+        tag.animate([{ opacity: 0, transform: 'translate(-50%,-50%) translateY(6px)' }, { opacity: 1, transform: 'translate(-50%,-50%) translateY(-14px)', offset: .2 }, { opacity: 1, transform: 'translate(-50%,-50%) translateY(-22px)', offset: .75 }, { opacity: 0, transform: 'translate(-50%,-50%) translateY(-34px)' }], { duration: 1200, easing: 'ease-out' });
+      });
+
+      const amp = 2 + wave * 2.5;
+      box.animate([{ transform: 'translate(0,0)' }, { transform: `translate(${-amp}px,${amp / 2}px)` }, { transform: `translate(${amp}px,${-amp / 2}px)` }, { transform: `translate(${-amp / 2}px,${-amp / 2}px)` }, { transform: 'translate(0,0)' }], { duration: 360 });
+      setTimeout(() => layer.remove(), 1400);
+
+      if (wave >= 2 || n >= 2) {
+        const myC = bandRGB[me], opC = bandRGB[opp];
+        const waveTxt = wave >= 2 ? (en ? `Chain ${wave}` : `${wave}連鎖`) : '';
+        let main, sub, bg, tint, fromRight = false;
+        if (kill && lost) {
+          main = en ? 'DOUBLE BREAK!' : '同時破壊！';
+          sub = `${waveTxt ? waveTxt + '   ' : ''}${en ? `Destroyed ×${kill}   Lost ×${lost}` : `撃破 ×${kill}   被破壊 ×${lost}`}`;
+          bg = `linear-gradient(100deg,transparent 0,rgba(${myC},.96) 16%,rgba(${myC},.96) 47%,rgba(${opC},.96) 53%,rgba(${opC},.96) 84%,transparent 100%)`;
+          tint = '0,0,0';
+        } else if (kill) {
+          main = en ? `DESTROYED! ×${kill}` : `撃破！ ×${kill}`; sub = waveTxt;
+          bg = `linear-gradient(100deg,transparent 0,rgba(${myC},.96) 16%,rgba(${myC},.96) 84%,transparent 100%)`; tint = myC;
+        } else {
+          main = en ? `LOST! ×${lost}` : `破壊された！ ×${lost}`; sub = waveTxt; fromRight = true;
+          bg = `linear-gradient(100deg,transparent 0,rgba(${opC},.96) 16%,rgba(${opC},.96) 84%,transparent 100%)`; tint = opC;
+        }
+        const sg = fromRight ? 1 : -1, rot = fromRight ? 5 : -5;
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:70;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden';
+        ov.innerHTML = `<div style="position:absolute;inset:0;background:rgba(${tint},.2)"></div>
+          <div class="fx-band" style="position:relative;width:150%;padding:14px 0 12px;transform:rotate(${rot}deg);text-align:center;color:#fff;background:${bg};box-shadow:0 0 60px rgba(${kill ? myC : opC},.6)">
+            <div style="font-size:clamp(32px,9.5vw,62px);font-weight:900;font-style:italic;letter-spacing:.05em;line-height:1;text-shadow:0 3px 0 rgba(0,0,0,.35),0 0 24px rgba(0,0,0,.35)">${main}</div>
+            ${sub ? `<div style="font-size:12px;font-weight:800;letter-spacing:.16em;margin-top:6px;opacity:.95;text-shadow:0 1px 6px rgba(0,0,0,.5)">${sub}</div>` : ''}
+          </div>`;
+        document.querySelectorAll('.fx-cutin').forEach(e => e.remove());
+        ov.classList.add('fx-cutin');
+        document.body.appendChild(ov);
+        ov.firstElementChild.animate([{ opacity: 0 }, { opacity: 1, offset: .14 }, { opacity: 1, offset: .82 }, { opacity: 0 }], { duration: 1500 });
+        const band = ov.querySelector('.fx-band');
+        band.animate([
+          { transform: `translateX(${sg * 110}%) rotate(${rot}deg)`, opacity: 0, easing: 'cubic-bezier(.2,.9,.2,1)' },
+          { transform: `translateX(0) rotate(${rot}deg)`, opacity: 1, offset: .16, easing: 'linear' },
+          { transform: `translateX(0) rotate(${rot}deg) scale(1.05)`, opacity: 1, offset: .8, easing: 'cubic-bezier(.6,0,.9,.4)' },
+          { transform: `translateX(${-sg * 110}%) rotate(${rot}deg)`, opacity: 0 }], { duration: 1500 });
+        setTimeout(() => ov.remove(), 1550);
+        return true;
+      }
+      return false;
+    }
+
     function runDestructionStepsAnimation(steps, idx, onComplete) {
       if (!gameState) return;
       const currentSession = gameState.sessionId;
@@ -1956,12 +2151,9 @@
         const pieceEl = document.getElementById(`piece-${item.r}-${item.c}`);
         if (pieceEl) pieceEl.classList.add('destroying-piece');
       });
+      const cutInShown = playDestroyFX(step, idx);
 
-      if (idx > 0) {
-        showToast(isEn() ? `Chain Destruction! (${idx + 1} waves)` : `連鎖破壊発生！（${idx + 1}連鎖）`);
-      } else {
-        showToast(isEn() ? 'Light Source Destroyed!' : '光源を破壊！');
-      }
+      showToast(destroyMessage(step, idx));
 
       scheduleTimeout(() => {
         if (!gameState || gameState.sessionId !== currentSession) return;
@@ -1975,7 +2167,7 @@
           if (!gameState || gameState.sessionId !== currentSession) return;
           runDestructionStepsAnimation(steps, idx + 1, onComplete);
         }, 220);
-      }, 460);
+      }, 460 + Math.min(idx, 3) * 90 + (cutInShown ? 900 : 0));
     }
 
     /* --------------------------------------------------------------------------
@@ -2978,6 +3170,92 @@
       }
     }
 
+
+    /* --------------------------------------------------------------------------
+     * TUTORIAL VISUAL HINTS (display only): highlight what to tap next
+     * -------------------------------------------------------------------------- */
+    function applyTutorialHints() {
+      applyTutorialHintsCore();
+      const b = document.getElementById('guide-banner'), ch = document.getElementById('guide-chips');
+      if (b && ch) b.toggleAttribute('data-nochips', !ch.innerHTML);
+      requestAnimationFrame(updateBoardSquareSize);
+    }
+    function applyTutorialHintsCore() {
+      const HINTS = ['hint-glow', 'hint-dir', 'hint-confirm', 'tut-dim'];
+      const clear = el => { if (el) HINTS.forEach(c => el.classList.remove(c)); };
+      const grid = document.getElementById('board-grid');
+      if (grid) grid.classList.remove('tut-focus');
+      ['btn-skip-action', 'btn-forced-pass', 'btn-popup-confirm'].forEach(id => clear(document.getElementById(id)));
+      DIR_KEYS.forEach(k => clear(document.getElementById(`popup-dir-${k}`)));
+      document.querySelectorAll('#self-lives-grid button').forEach(clear);
+
+      const banner = document.getElementById('guide-banner');
+      let prog = document.getElementById('guide-progress');
+      let chips = document.getElementById('guide-chips');
+      if (banner && !prog) {
+        prog = document.createElement('div'); prog.id = 'guide-progress';
+        banner.insertBefore(prog, banner.firstChild);
+      }
+      if (banner && !chips) {
+        chips = document.createElement('div'); chips.id = 'guide-chips';
+        banner.insertBefore(chips, document.getElementById('guide-desc'));
+      }
+      if (!gameState || !gameState.isTutorial) { if (chips) chips.innerHTML = ''; if (prog) prog.innerHTML = ''; return; }
+
+      // step progress segments
+      const m = (document.getElementById('guide-step-badge').textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
+      if (m && prog) {
+        const cur = +m[1], tot = +m[2];
+        prog.innerHTML = Array.from({ length: tot }, (_, i) => `<i class="${i + 1 < cur ? 'on' : (i + 1 === cur ? 'cur' : '')}"></i>`).join('');
+      }
+
+      const req = gameState.tutorialRequirement;
+      const me = gameState.players[gameState.activePlayer];
+      if (!req || !me || !me.isHuman || gameState.isGameOver) { if (chips) chips.innerHTML = ''; return; }
+
+      const L = isEn();
+      const arrows = { N: '▲', S: '▼', E: '▶', W: '◀' };
+      const items = [];
+      if (req.type === 'place') {
+        const sameCell = selectedCell && req.targetCell && selectedCell.r === req.targetCell.r && selectedCell.c === req.targetCell.c;
+        if (req.requiredLife) {
+          const done = selectedLife === req.requiredLife;
+          items.push({ t: `${L ? 'Life ' : 'ライフ'}${req.requiredLife}`, done });
+          const idx = [4, 3, 2, 1].indexOf(req.requiredLife);
+          document.querySelectorAll('#self-lives-grid button').forEach((b, i) => {
+            if (i === idx) { if (!done) b.classList.add('hint-glow'); } else b.classList.add('tut-dim');
+          });
+        }
+        if (req.targetCell) {
+          items.push({ t: `${L ? 'Cell ' : 'マス '}(${req.targetCell.r}, ${req.targetCell.c})`, done: Boolean(sameCell) });
+          if (!selectedCell && grid) grid.classList.add('tut-focus');
+        }
+        if (req.requiredDirs) {
+          const chosen = [...selectedDirsQueue].sort().join(','), need = [...req.requiredDirs].sort().join(',');
+          items.push({ t: `${L ? 'Dir ' : '方向 '}${req.requiredDirs.map(d => arrows[d]).join(' ')}`, done: chosen === need });
+          if (sameCell) DIR_KEYS.forEach(k => {
+            const b = document.getElementById(`popup-dir-${k}`); if (!b) return;
+            if (req.requiredDirs.includes(k)) { if (!selectedDirsQueue.includes(k)) b.classList.add('hint-dir'); }
+            else b.classList.add('tut-dim');
+          });
+        }
+        items.push({ t: L ? 'Place' : '配置', done: false });
+        const cb = document.getElementById('btn-popup-confirm');
+        if (cb && !cb.disabled && !document.getElementById('direction-popup').classList.contains('hidden')) cb.classList.add('hint-confirm');
+      } else if (req.type === 'skip') {
+        const b = document.getElementById('btn-skip-action');
+        if (b && !b.disabled) b.classList.add('hint-glow');
+        items.push({ t: document.getElementById('lbl-btn-skip').textContent.trim(), done: false });
+      } else if (req.type === 'pass') {
+        const b = document.getElementById('btn-forced-pass');
+        if (b) b.classList.add('hint-glow');
+        items.push({ t: document.getElementById('lbl-btn-pass').textContent.trim(), done: false });
+      }
+      const curIdx = items.findIndex(i => !i.done);
+      if (chips) chips.innerHTML = items.map((it, i) =>
+        `<span class="gc ${it.done ? 'done' : (i === curIdx ? 'cur' : '')}"><i>${it.done ? '✓' : i + 1}</i>${it.t}</span>`).join('');
+    }
+
     function setGuideText(badge, title, desc) {
       document.getElementById('guide-step-badge').textContent = badge;
       document.getElementById('guide-title').textContent = title;
@@ -3136,6 +3414,23 @@
      * Returns dynamic background & border inline styles where color strength scales with |raysA - raysB|
      */
     function getCellIntensityStyles(raysA, raysB) {
+      if (document.documentElement.getAttribute('data-theme') !== 'light') return getCellIntensityStylesDark(raysA, raysB);
+      const diff = Math.abs(raysA - raysB);
+      const bgA = [0.14, 0.26, 0.40, 0.56, 0.74], bdA = [0.45, 0.60, 0.78, 0.92, 1];
+      if (raysA === raysB) {
+        return raysA > 0
+          ? { backgroundColor: '#e3e8f1', borderColor: '#a9b4c8', boxShadow: 'none' }
+          : { backgroundColor: '#fbfcfe', borderColor: '#d9dfea', boxShadow: 'none' };
+      }
+      const idx = Math.min(diff - 1, 4), isA = raysA > raysB;
+      return {
+        backgroundColor: isA ? `rgba(8, 145, 178, ${bgA[idx]})` : `rgba(225, 29, 72, ${bgA[idx]})`,
+        borderColor: isA ? `rgba(14, 116, 144, ${bdA[idx]})` : `rgba(190, 18, 60, ${bdA[idx]})`,
+        boxShadow: 'none'
+      };
+    }
+
+    function getCellIntensityStylesDark(raysA, raysB) {
       const diff = Math.abs(raysA - raysB);
       if (raysA > raysB) {
         const bgAlphas = [0.16, 0.28, 0.42, 0.56, 0.72];
@@ -3173,17 +3468,33 @@
       }
     }
 
+    const pieceSeen = {};
+    // 実効ライフ = 基本ライフ − (敵光線数 − 味方光線数)。0以下になると破壊される（simulatePlacementの判定と同じ式）
+    function calcEffLife(src, r, c, ev, destroyedMap) {
+      const d = destroyedMap && destroyedMap.get(`${r},${c}`);
+      if (d) return d.life - (d.rOpp - d.rOwner);
+      const own = src.owner === 'A' ? ev.raysA[r][c] : ev.raysB[r][c];
+      const opp = src.owner === 'A' ? ev.raysB[r][c] : ev.raysA[r][c];
+      return src.life - (opp - own);
+    }
     function createSourcePieceHTML(r, c, src, isGhost, willDie) {
       const isA = src.owner === 'A';
       const baseBg = isA ? 'bg-cyan-400 text-slate-950 border-cyan-100' : 'bg-rose-500 text-white border-rose-200';
-      const ghostClass = isGhost ? 'opacity-80 ring-2 ring-yellow-300' : 'piece-pop';
+      const eff = (typeof src.eff === 'number') ? src.eff : src.life;
+      const lifeMod = eff === src.life ? '' : (eff <= 0 ? 'crit' : (eff > src.life ? 'up' : 'down'));
+      const coreCls = lifeMod ? `life-mod life-${lifeMod} owner-${isA ? 'a' : 'b'}` : baseBg;
+      const sig = `${src.owner}|${src.life}|${src.dirs.join('')}`;
+      let ghostClass;
+      if (isGhost) ghostClass = 'opacity-80 ring-2 ring-yellow-300';
+      else { ghostClass = pieceSeen[`${r}-${c}`] === sig ? '' : 'piece-pop'; pieceSeen[`${r}-${c}`] = sig; }
 
       const nActive = src.dirs.includes('N');
       const sActive = src.dirs.includes('S');
       const eActive = src.dirs.includes('E');
       const wActive = src.dirs.includes('W');
 
-      const beamColor = isA ? '#22d3ee' : '#fb7185';
+      const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+      const beamColor = isLightTheme ? (isA ? '#0e7490' : '#be123c') : (isA ? '#22d3ee' : '#fb7185');
 
       return `
         <div id="piece-${r}-${c}" class="relative w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center ${ghostClass}">
@@ -3193,8 +3504,8 @@
             ${wActive ? `<polygon points="0,20 11,14 11,26" fill="${beamColor}" />` : ''}
             ${eActive ? `<polygon points="40,20 29,14 29,26" fill="${beamColor}" />` : ''}
           </svg>
-          <div class="relative z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full ${baseBg} border flex items-center justify-center shadow-md">
-            <span class="font-mono-num text-[10px] sm:text-xs font-black leading-none">${src.life}</span>
+          <div class="relative z-10 w-4 h-4 sm:w-5 sm:h-5 rounded-full ${coreCls} border flex items-center justify-center shadow-md">
+            <span class="font-mono-num text-[10px] sm:text-xs font-black leading-none">${eff}</span>
           </div>
           ${willDie ? `<span class="warn-badge absolute -top-1.5 -right-1.5 z-20 px-1 rounded bg-amber-400 text-slate-950 font-black text-[8px]">${isEn() ? 'BRK' : '破壊'}</span>` : ''}
         </div>
@@ -3222,8 +3533,9 @@
 
       const displayEval = simPreview ? simPreview.finalEval : gameState.eval;
       const destroyedSet = new Set();
+      const destroyedMap = new Map();
       if (simPreview) {
-        simPreview.allDestroyed.forEach(d => destroyedSet.add(`${d.r},${d.c}`));
+        simPreview.allDestroyed.forEach(d => { destroyedSet.add(`${d.r},${d.c}`); destroyedMap.set(`${d.r},${d.c}`, d); });
       }
 
       // 1. Header Turn & Active Badge
@@ -3302,13 +3614,14 @@
           const willDie = destroyedSet.has(`${r},${c}`);
 
           let centerPieceHTML = '';
+          if (!src) delete pieceSeen[`${r}-${c}`];
           if (src) {
-            centerPieceHTML = createSourcePieceHTML(r, c, src, false, willDie);
+            centerPieceHTML = createSourcePieceHTML(r, c, { ...src, eff: calcEffLife(src, r, c, displayEval, destroyedMap) }, false, willDie);
           } else if (isSelected && selectedLife) {
             const ghostWillDie = simPreview && destroyedSet.has(`${r},${c}`);
             centerPieceHTML = createSourcePieceHTML(
               r, c,
-              { owner: activeKey, dirs: selectedDirsQueue, life: selectedLife },
+              { owner: activeKey, dirs: selectedDirsQueue, life: selectedLife, eff: calcEffLife({ owner: activeKey, life: selectedLife }, r, c, displayEval, destroyedMap) },
               true,
               ghostWillDie,
               false
@@ -3507,6 +3820,8 @@
           skipSub.textContent = isEn() ? '1 left' : '残り1回';
         }
       }
+      applyTutorialHints();
+      applyPopupMini();
     }
 
     /* --------------------------------------------------------------------------
@@ -3547,7 +3862,8 @@
 
       // 2. Initialize in Japanese by default & apply layout
       setLanguage('ja');
-      applyLayoutMode(window.innerWidth >= 880 ? 'pc' : 'mobile');
+      applyLayoutMode(detectLayoutMode());
+      updateSetupModeUI();
       // runHeadlessSelfTest(); // 【デモプレイ復活手順⑧】とあわせてアンコメント
     });
   </script>
